@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import SafeImage from '../components/SafeImage';
 import SearchFilters, { Filters } from '../components/SearchFilters';
+import BookmarkBadge from '../components/BookmarkBadge';
 
 type Card = {
   id: string;
@@ -12,6 +13,7 @@ type Card = {
   type?: 'Studio' | '1BR' | '2BR' | 'Flatmate';
   loc?: string; // area
   km?: number;  // distance
+  saved?: boolean;
 };
 
 function priceToNum(p?: string): number | undefined {
@@ -21,7 +23,7 @@ function priceToNum(p?: string): number | undefined {
 }
 
 export default function Home() {
-  // Search string is now local to Home (not part of Filters anymore)
+  // Search string is now local to Home
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<Filters>({
     location: '',
@@ -31,6 +33,21 @@ export default function Home() {
     sort: 'Relevance',
   });
 
+  // Listings state (with saved toggling)
+  const [popular, setPopular] = useState<Card[]>([
+    { id: 'p1', title: 'Sunny 1BR near CBD', subtitle: 'Hamilton Central', price: '$420/wk', badge: 'Popular', type: '1BR', loc: 'Hamilton', km: 1.0, saved: true },
+    { id: 'p2', title: 'Modern studio', subtitle: 'Hillcrest', price: '$350/wk', type: 'Studio', loc: 'Hillcrest', km: 2.2 },
+    { id: 'p3', title: '2BR with parking', subtitle: 'Rototuna', price: '$520/wk', type: '2BR', loc: 'Rototuna', km: 4.5, saved: true },
+    { id: 'p4', title: 'Flatmate wanted', subtitle: 'Frankton', price: '$210/wk', type: 'Flatmate', loc: 'Frankton', km: 3.6 },
+  ]);
+
+  const [nearby, setNearby] = useState<Card[]>([
+    { id: 'n1', title: 'City studio', subtitle: '0.5 km • CBD', price: '$380/wk', badge: 'Nearby', type: 'Studio', loc: 'CBD', km: 0.5 },
+    { id: 'n2', title: 'Cozy 1BR', subtitle: '1.2 km • River Rd', price: '$410/wk', type: '1BR', loc: 'River Rd', km: 1.2 },
+    { id: 'n3', title: 'Shared room', subtitle: '1.9 km • Five Cross Rds', price: '$180/wk', type: 'Flatmate', loc: 'Five Cross Rds', km: 1.9 },
+    { id: 'n4', title: 'Large 2BR', subtitle: '2.4 km • Claudelands', price: '$540/wk', type: '2BR', loc: 'Claudelands', km: 2.4 },
+  ]);
+
   const categories = useMemo<Card[]>(
     () => [
       { id: 'c1', title: 'Studios' },
@@ -39,26 +56,6 @@ export default function Home() {
       { id: 'c4', title: 'Flatmates' },
       { id: 'c5', title: 'Pet Friendly' },
       { id: 'c6', title: 'Near Uni' },
-    ],
-    []
-  );
-
-  const popular = useMemo<Card[]>(
-    () => [
-      { id: 'p1', title: 'Sunny 1BR near CBD', subtitle: 'Hamilton Central', price: '$420/wk', badge: 'Popular', type: '1BR', loc: 'Hamilton', km: 1.0 },
-      { id: 'p2', title: 'Modern studio', subtitle: 'Hillcrest', price: '$350/wk', type: 'Studio', loc: 'Hillcrest', km: 2.2 },
-      { id: 'p3', title: '2BR with parking', subtitle: 'Rototuna', price: '$520/wk', type: '2BR', loc: 'Rototuna', km: 4.5 },
-      { id: 'p4', title: 'Flatmate wanted', subtitle: 'Frankton', price: '$210/wk', type: 'Flatmate', loc: 'Frankton', km: 3.6 },
-    ],
-    []
-  );
-
-  const nearby = useMemo<Card[]>(
-    () => [
-      { id: 'n1', title: 'City studio', subtitle: '0.5 km • CBD', price: '$380/wk', badge: 'Nearby', type: 'Studio', loc: 'CBD', km: 0.5 },
-      { id: 'n2', title: 'Cozy 1BR', subtitle: '1.2 km • River Rd', price: '$410/wk', type: '1BR', loc: 'River Rd', km: 1.2 },
-      { id: 'n3', title: 'Shared room', subtitle: '1.9 km • Five Cross Rds', price: '$180/wk', type: 'Flatmate', loc: 'Five Cross Rds', km: 1.9 },
-      { id: 'n4', title: 'Large 2BR', subtitle: '2.4 km • Claudelands', price: '$540/wk', type: '2BR', loc: 'Claudelands', km: 2.4 },
     ],
     []
   );
@@ -116,6 +113,19 @@ export default function Home() {
   const popularFiltered = useMemo(() => applyFilters(popular), [popular, filters, search]);
   const nearbyFiltered = useMemo(() => applyFilters(nearby), [nearby, filters, search]);
 
+  // Toggle saved state
+  const toggleSaved = (id: string, from: 'popular' | 'nearby') => {
+    if (from === 'popular') {
+      setPopular((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, saved: !item.saved } : item))
+      );
+    } else {
+      setNearby((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, saved: !item.saved } : item))
+      );
+    }
+  };
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
       {/* Title block — shown on all screen sizes */}
@@ -137,7 +147,7 @@ export default function Home() {
         <span className="pointer-events-none absolute left-3 top-2.5 text-slate-400">🔍</span>
       </div>
 
-      {/* Filters summary + expandable panel (no search here) */}
+      {/* Filters summary + expandable panel */}
       <SearchFilters onApply={setFilters} defaultFilters={filters} />
 
       {/* Categories */}
@@ -153,7 +163,7 @@ export default function Home() {
       <Section title="Popular">
         <HorizontalScroller big>
           {popularFiltered.map((p) => (
-            <ListingTile key={p.id} {...p} />
+            <ListingTile key={p.id} {...p} onToggleSaved={() => toggleSaved(p.id, 'popular')} />
           ))}
         </HorizontalScroller>
       </Section>
@@ -162,7 +172,7 @@ export default function Home() {
       <Section title="Nearby">
         <HorizontalScroller big>
           {nearbyFiltered.map((n) => (
-            <ListingTile key={n.id} {...n} />
+            <ListingTile key={n.id} {...n} onToggleSaved={() => toggleSaved(n.id, 'nearby')} />
           ))}
         </HorizontalScroller>
       </Section>
@@ -215,17 +225,47 @@ function CategoryTile({ title, img }: Card) {
   );
 }
 
-function ListingTile({ title, subtitle, img, price, badge }: Card) {
+function ListingTile({
+  title,
+  subtitle,
+  img,
+  price,
+  badge,
+  saved,
+  onToggleSaved,
+}: Card & { onToggleSaved: () => void }) {
   return (
     <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="relative">
         <SafeImage src={img} alt={title} heightClass="h-40" />
+
+        {/* optional corner badge like 'Popular' */}
         {badge && (
           <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-slate-800 shadow">
             {badge}
           </span>
         )}
+
+        {/* bookmark toggle (transparent background) */}
+        <button
+          onClick={onToggleSaved}
+          className="absolute right-2 top-2 p-1 text-white drop-shadow-md hover:scale-110 transition-transform dark:text-white"
+          aria-label={saved ? 'Remove bookmark' : 'Add bookmark'}
+        >
+          {saved ? (
+            // Filled bookmark icon
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M6 2a2 2 0 0 0-2 2v18l8-5.333L20 22V4a2 2 0 0 0-2-2H6z" />
+            </svg>
+          ) : (
+            // Outline bookmark icon
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 2a2 2 0 0 0-2 2v18l8-5.333L20 22V4a2 2 0 0 0-2-2H6z" />
+            </svg>
+          )}
+        </button>
       </div>
+
       <div className="p-3">
         <h3 className="text-sm font-semibold">{title}</h3>
         {subtitle && (
