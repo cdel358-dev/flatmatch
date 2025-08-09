@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 12px;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-2xl px-4 py-2 font-medium shadow-sm transition active:scale-[.98];
+  }
+  .btn-primary {
+    @apply btn bg-brand text-brand-foreground hover:bg-blue-600;
+  }
+  .card {
+    @apply rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900;
+  }
+}
