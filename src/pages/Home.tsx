@@ -7,12 +7,11 @@ type Card = {
   title: string;
   subtitle?: string;
   img?: string; // optional; SafeImage falls back to /placeholder.webp
-  price?: string; // like "$420/wk"
+  price?: string; // "$420/wk"
   badge?: string;
-  // optional helpers for filtering demo
   type?: 'Studio' | '1BR' | '2BR' | 'Flatmate';
-  loc?: string; // location/area
-  km?: number; // distance for "Nearest" sort demo
+  loc?: string; // area
+  km?: number;  // distance
 };
 
 function priceToNum(p?: string): number | undefined {
@@ -22,8 +21,9 @@ function priceToNum(p?: string): number | undefined {
 }
 
 export default function Home() {
+  // Search string is now local to Home (not part of Filters anymore)
+  const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<Filters>({
-    q: '',
     location: '',
     minPrice: undefined,
     maxPrice: undefined,
@@ -31,7 +31,6 @@ export default function Home() {
     sort: 'Relevance',
   });
 
-  // Demo data — include fields to make filtering feel real
   const categories = useMemo<Card[]>(
     () => [
       { id: 'c1', title: 'Studios' },
@@ -41,7 +40,7 @@ export default function Home() {
       { id: 'c5', title: 'Pet Friendly' },
       { id: 'c6', title: 'Near Uni' },
     ],
-    [],
+    []
   );
 
   const popular = useMemo<Card[]>(
@@ -51,7 +50,7 @@ export default function Home() {
       { id: 'p3', title: '2BR with parking', subtitle: 'Rototuna', price: '$520/wk', type: '2BR', loc: 'Rototuna', km: 4.5 },
       { id: 'p4', title: 'Flatmate wanted', subtitle: 'Frankton', price: '$210/wk', type: 'Flatmate', loc: 'Frankton', km: 3.6 },
     ],
-    [],
+    []
   );
 
   const nearby = useMemo<Card[]>(
@@ -61,15 +60,15 @@ export default function Home() {
       { id: 'n3', title: 'Shared room', subtitle: '1.9 km • Five Cross Rds', price: '$180/wk', type: 'Flatmate', loc: 'Five Cross Rds', km: 1.9 },
       { id: 'n4', title: 'Large 2BR', subtitle: '2.4 km • Claudelands', price: '$540/wk', type: '2BR', loc: 'Claudelands', km: 2.4 },
     ],
-    [],
+    []
   );
 
   const applyFilters = (list: Card[]): Card[] => {
     let out = list.slice();
 
-    // text query
-    if (filters.q) {
-      const q = filters.q.toLowerCase();
+    // search text
+    if (search) {
+      const q = search.toLowerCase();
       out = out.filter(
         (x) =>
           x.title.toLowerCase().includes(q) ||
@@ -109,60 +108,69 @@ export default function Home() {
     } else if (filters.sort === 'Nearest') {
       out.sort((a, b) => (a.km ?? 1e9) - (b.km ?? 1e9));
     }
-    // Relevance => leave as-is for demo
+    // Relevance => leave order as-is
 
     return out;
   };
 
-  const popularFiltered = useMemo(() => applyFilters(popular), [popular, filters]);
-  const nearbyFiltered = useMemo(() => applyFilters(nearby), [nearby, filters]);
+  const popularFiltered = useMemo(() => applyFilters(popular), [popular, filters, search]);
+  const nearbyFiltered = useMemo(() => applyFilters(nearby), [nearby, filters, search]);
 
   return (
-    <div className="py-0 md:py-2">
-      {/* Search + Filters on top */}
-      <SearchFilters onApply={setFilters} defaultFilters={filters} />
-
-      {/* Mobile-only title below search */}
-      <div className="mb-4 mt-1 px-4 md:hidden">
+    <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
+      {/* Title block — shown on all screen sizes */}
+      <div className="mb-3">
         <h1 className="text-2xl font-bold">Flat Match</h1>
         <p className="text-slate-600 dark:text-slate-300">Find your perfect flat.</p>
       </div>
 
-      {/* Content container (keeps same gutter as App main) */}
-      <div className="mx-auto max-w-7xl px-4">
-        {/* Categories — horizontal */}
-        <Section title="Categories">
-          <HorizontalScroller>
-            {categories.map((c) => (
-              <CategoryTile key={c.id} {...c} />
-            ))}
-          </HorizontalScroller>
-        </Section>
-
-        {/* Popular — horizontal */}
-        <Section title="Popular">
-          <HorizontalScroller big>
-            {popularFiltered.map((p) => (
-              <ListingTile key={p.id} {...p} />
-            ))}
-          </HorizontalScroller>
-        </Section>
-
-        {/* Nearby — horizontal */}
-        <Section title="Nearby">
-          <HorizontalScroller big>
-            {nearbyFiltered.map((n) => (
-              <ListingTile key={n.id} {...n} />
-            ))}
-          </HorizontalScroller>
-        </Section>
+      {/* Search directly below title */}
+      <div className="relative mb-3">
+        <input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          type="text"
+          placeholder="Search..."
+          className="w-full rounded-xl border border-slate-300 px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-900"
+          aria-label="Search listings"
+        />
+        <span className="pointer-events-none absolute left-3 top-2.5 text-slate-400">🔍</span>
       </div>
+
+      {/* Filters summary + expandable panel (no search here) */}
+      <SearchFilters onApply={setFilters} defaultFilters={filters} />
+
+      {/* Categories */}
+      <Section title="Categories">
+        <HorizontalScroller>
+          {categories.map((c) => (
+            <CategoryTile key={c.id} {...c} />
+          ))}
+        </HorizontalScroller>
+      </Section>
+
+      {/* Popular */}
+      <Section title="Popular">
+        <HorizontalScroller big>
+          {popularFiltered.map((p) => (
+            <ListingTile key={p.id} {...p} />
+          ))}
+        </HorizontalScroller>
+      </Section>
+
+      {/* Nearby */}
+      <Section title="Nearby">
+        <HorizontalScroller big>
+          {nearbyFiltered.map((n) => (
+            <ListingTile key={n.id} {...n} />
+          ))}
+        </HorizontalScroller>
+      </Section>
     </div>
   );
 }
 
-/* ---------- UI pieces ---------- */
-
+/* ---------- UI primitives ---------- */
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mb-6">
@@ -220,8 +228,14 @@ function ListingTile({ title, subtitle, img, price, badge }: Card) {
       </div>
       <div className="p-3">
         <h3 className="text-sm font-semibold">{title}</h3>
-        {subtitle && <p className="text-xs text-slate-600 dark:text-slate-300">{subtitle}</p>}
-        {price && <p className="mt-1 text-sm font-medium text-blue-600 dark:text-blue-400">{price}</p>}
+        {subtitle && (
+          <p className="text-xs text-slate-600 dark:text-slate-300">{subtitle}</p>
+        )}
+        {price && (
+          <p className="mt-1 text-sm font-medium text-blue-600 dark:text-blue-400">
+            {price}
+          </p>
+        )}
       </div>
     </article>
   );
