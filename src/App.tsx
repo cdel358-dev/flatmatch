@@ -1,29 +1,20 @@
-import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
 
 export default function App() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Show header only for desktop */}
-      {!isMobile && <Header />}
+    <div className="min-h-dvh bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+      {/* Top bar */}
+      <Header />
 
-      <main className="flex-1 container py-4">
+      {/* Page content — reserve space for fixed mobile bottom nav */}
+      <main className="mx-auto max-w-7xl px-4 pb-20 md:pb-0">
         <Outlet />
       </main>
 
-      {/* Show bottom nav only for mobile */}
-      {isMobile && <BottomNav />}
+      {/* Always render; hidden on md+ */}
+      <BottomNav />
     </div>
   );
 }
