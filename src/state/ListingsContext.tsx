@@ -1,8 +1,19 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { getDb, ListingRow } from '../db/appDb';
-import { listingsService } from '../services';
+// src/state/ListingsContext.tsx
+import React, { createContext, useContext, useMemo, useState } from 'react';
+import { popularMock, nearbyMock } from '../data/mockListings';
+import { flatmatesByListing } from '../data/mockFlatmates';
 
+/* -------- Types you can expand later -------- */
 export type ListingType = 'Studio' | '1BR' | '2BR' | 'Flatmate';
+
+export type Flatmate = {
+  id: string;
+  name: string;
+  verified?: boolean;
+  avatar?: string;
+  about?: string;
+};
+
 export type Listing = {
   id: string;
   title: string;
@@ -18,124 +29,85 @@ export type Listing = {
   rating?: number;
   reviews?: number;
   images?: string[];
-  flatmates?: { id: string; name: string; verified?: boolean }[];
+  flatmates?: Flatmate[];
   tradeMeUrl?: string;
   hostEmail?: string;
+  // optional: visibleReviews?: number;
 };
 
+/* -------- Helper: attach flatmates from mock map if missing -------- */
+function attachFlatmates<T extends { id: string; flatmates?: Flatmate[] }>(list: T[]): T[] {
+  return list.map((l) => ({
+    ...l,
+    flatmates: l.flatmates && l.flatmates.length ? l.flatmates : (flatmatesByListing[l.id] ?? []),
+  }));
+}
+
+/* -------- Context shape -------- */
 type ListingsState = {
   popular: Listing[];
   nearby: Listing[];
+  getListingById: (
+    id: string
+  ) => { listing: Listing | undefined; source: 'popular' | 'nearby' | undefined; index: number };
   toggleSaved: (id: string) => void;
-  getListingById: (id: string) => { listing: Listing | undefined; source: 'popular' | 'nearby' | undefined };
   updateListing: (id: string, patch: Partial<Listing>) => void;
-  refresh: () => Promise<void>;
+  refresh: () => void; // reload from mocks (you can replace with API later)
 };
 
 const Ctx = createContext<ListingsState | null>(null);
 
+/* -------- Provider -------- */
 export function ListingsProvider({ children }: { children: React.ReactNode }) {
-  const [popular, setPopular] = useState<Listing[]>([]);
-  const [nearby, setNearby] = useState<Listing[]>([]);
-  const db = useMemo(() => getDb(), []);
+  // Seed from mocks; attach flatmates for convenience
+  const [popular, setPopular] = useState<Listing[]>(attachFlatmates([...popularMock]));
+  const [nearby, setNearby] = useState<Listing[]>(attachFlatmates([...nearbyMock]));
 
-  // Write a whole lane to IndexedDB (if available)
-  const persistLane = async (source: 'popular' | 'nearby', list: Listing[]) => {
-    if (!db) return;
-    try {
-      const now = Date.now();
-      await db.table<ListingRow>('listings').bulkPut(
-        list.map(l => ({ ...(l as ListingRow), source, updatedAt: now })),
-      );
-    } catch (e) {
-      console.error('IndexedDB write failed:', e);
-    }
+  const getListingById: ListingsState['getListingById'] = (id) => {
+    const pIdx = popular.findIndex((l) => l.id === id);
+    if (pIdx !== -1) return { listing: popular[pIdx], source: 'popular', index: pIdx };
+    const nIdx = nearby.findIndex((l) => l.id === id);
+    if (nIdx !== -1) return { listing: nearby[nIdx], source: 'nearby', index: nIdx };
+    return { listing: undefined, source: undefined, index: -1 };
+    // (If you later add a DB/service, look there too.)
   };
 
-  const getListingById = (id: string) => {
-    const p = popular.find(l => l.id === id);
-    if (p) return { listing: p, source: 'popular' as const };
-    const n = nearby.find(l => l.id === id);
-    if (n) return { listing: n, source: 'nearby' as const };
-    return { listing: undefined, source: undefined };
+  const setLane = (source: 'popular' | 'nearby', updater: (arr: Listing[]) => Listing[]) => {
+    if (source === 'popular') setPopular((prev) => updater(prev));
+    else setNearby((prev) => updater(prev));
   };
 
-  const setList = (source: 'popular' | 'nearby', updater: (list: Listing[]) => Listing[]) => {
-    if (source === 'popular') {
-      setPopular(prev => {
-        const next = updater(prev);
-        void persistLane('popular', next);
-        return next;
-      });
-    } else {
-      setNearby(prev => {
-        const next = updater(prev);
-        void persistLane('nearby', next);
-        return next;
-      });
-    }
-  };
-
-  const updateListing = (id: string, patch: Partial<Listing>) => {
+  const updateListing: ListingsState['updateListing'] = (id, patch) => {
     const found = getListingById(id);
-    if (!found.source) return;
-    setList(found.source, list => list.map(l => (l.id === id ? { ...l, ...patch } : l)));
+    if (!found.source || found.index < 0) return;
+    setLane(found.source, (arr) =>
+      arr.map((l, i) => (i === found.index ? { ...l, ...patch } : l))
+    );
   };
 
-  const toggleSaved = (id: string) => {
+  const toggleSaved: ListingsState['toggleSaved'] = (id) => {
     const found = getListingById(id);
-    if (!found.source) return;
-    setList(found.source, list => list.map(l => (l.id === id ? { ...l, saved: !l.saved } : l)));
+    if (!found.source || found.index < 0) return;
+    setLane(found.source, (arr) =>
+      arr.map((l, i) => (i === found.index ? { ...l, saved: !l.saved } : l))
+    );
   };
 
-  // Public refresh() you can call from any screen / pull-to-refresh
-  const refresh = async () => {
-    try {
-      const { popular: p, nearby: n } = await listingsService.fetchAll();
-      setPopular(p);
-      setNearby(n);
-      void persistLane('popular', p);
-      void persistLane('nearby', n);
-    } catch (e) {
-      console.error('Service fetch failed:', e);
-    }
+  const refresh = () => {
+    // Replace with API calls later; keep attachFlatmates so names show under avatars
+    setPopular(attachFlatmates([...popularMock]));
+    setNearby(attachFlatmates([...nearbyMock]));
   };
 
-  // Boot: try DB → else service
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      // 1) Try DB
-      if (db) {
-        try {
-          const rows = await db.table<ListingRow>('listings').toArray();
-          if (cancelled) return;
-          if (rows.length > 0) {
-            const p = rows.filter(r => r.source === 'popular');
-            const n = rows.filter(r => r.source === 'nearby');
-            setPopular(p);
-            setNearby(n);
-            return;
-          }
-        } catch (e) {
-          console.warn('IndexedDB load failed, falling back to service:', e);
-        }
-      }
-      // 2) Fallback to service
-      await refresh();
-    })();
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [db]);
-
-  const value = useMemo(
-    () => ({ popular, nearby, toggleSaved, getListingById, updateListing, refresh }),
-    [popular, nearby],
+  const value = useMemo<ListingsState>(
+    () => ({ popular, nearby, getListingById, toggleSaved, updateListing, refresh }),
+    [popular, nearby]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
+/* -------- Hook -------- */
 export function useListings() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error('useListings must be used within a ListingsProvider');

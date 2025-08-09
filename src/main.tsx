@@ -12,6 +12,7 @@ import Messages from './pages/Messages';
 import Profile from './pages/Profile';
 import ListingDetails from './pages/ListingDetails';
 import Reviews from './pages/Reviews';
+import FlatmateProfile from './pages/FlatmateProfile';
 import { ListingsProvider } from './state/ListingsContext';
 import AppErrorBoundary from './components/AppErrorBoundary';
 
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
       { path: 'profile', element: <Profile /> },
       { path: 'listing/:id', element: <ListingDetails /> },
       { path: 'listing/:id/reviews', element: <Reviews /> },
+      { path: 'listing/:id/flatmate/:mid', element: <FlatmateProfile /> },
     ],
   },
 ]);

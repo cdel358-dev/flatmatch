@@ -4,6 +4,7 @@ import SafeImage from '../components/SafeImage';
 import { useListings } from '../state/ListingsContext';
 import { useReviews } from '../hooks/useReviews';
 
+
 /* ---------- Star rating ---------- */
 function StarRating({ value }: { value: number }) {
   const full = Math.floor(value);
@@ -264,32 +265,59 @@ export default function ListingDetails() {
 
       {/* Flatmates (no trailing paragraph) */}
       <section className="mb-2">
-        <h2 className="mb-3 text-lg font-semibold">Flatmates</h2>
-        <div className="mb-1 flex items-center gap-5">
-          {(listing.flatmates ?? []).map((m) => (
-            <div key={m.id} className="relative">
-              <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-slate-300 dark:bg-slate-700">
-                {/* avatar placeholder */}
-                <svg className="h-8 w-8 opacity-60" viewBox="0 0 24 24" fill="currentColor">
-                  <circle cx="12" cy="8" r="4" />
-                  <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" />
-                </svg>
-              </div>
-              {m.verified && (
-                <span
-                  className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full border border-white bg-white text-slate-900 shadow dark:border-slate-900 dark:bg-slate-900 dark:text-white"
-                  aria-label="Verified"
-                  title="Verified"
-                >
-                  <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="m5 13 4 4L19 7" />
-                  </svg>
-                </span>
-              )}
+  <h2 className="mb-3 text-lg font-semibold">Flatmates</h2>
+
+  {(!listing.flatmates || listing.flatmates.length === 0) ? (
+    <div className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+      Be the first to join this flat!
+    </div>
+  ) : (
+    <div className="flex items-start gap-6">
+      {listing.flatmates.map((m) => (
+        <Link
+          key={m.id}
+          to={`/listing/${listing.id}/flatmate/${m.id}`}
+          className="group block w-16 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label={`View ${m.name}'s profile`}
+        >
+          {/* Wrapper is relative; badge is positioned against this, not the avatar (which is overflow-hidden) */}
+          <div className="relative mx-auto w-16">
+            <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-slate-300 dark:bg-slate-700">
+              {/* avatar placeholder (SafeImage if you have one) */}
+              <svg className="h-8 w-8 opacity-60" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" />
+              </svg>
             </div>
-          ))}
-        </div>
-      </section>
+
+            {m.verified && (
+              <span
+                className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-green-500 text-white ring-2 ring-white shadow-sm"
+                title="Verified"
+              >
+                <svg
+                  className="h-3 w-3"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={3}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m5 13 4 4L19 7" />
+                </svg>
+              </span>
+            )}
+          </div>
+
+          {/* Name under avatar */}
+          <div className="mt-2 line-clamp-1 text-xs font-medium text-slate-700 group-hover:underline dark:text-slate-200">
+            {m.name}
+          </div>
+        </Link>
+      ))}
+    </div>
+  )}
+</section>
+
     </div>
   );
 }
