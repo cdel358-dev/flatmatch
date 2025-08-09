@@ -12,6 +12,7 @@ import Messages from './pages/Messages';
 import Profile from './pages/Profile';
 import ListingDetails from './pages/ListingDetails';
 import { ListingsProvider } from './state/ListingsContext';
+import AppErrorBoundary from './components/AppErrorBoundary';
 
 const router = createBrowserRouter([
   {
@@ -35,6 +36,8 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
-  </StrictMode>,
+    <AppErrorBoundary>
+      <RouterProvider router={router} />
+    </AppErrorBoundary>
+  </StrictMode>
 );
