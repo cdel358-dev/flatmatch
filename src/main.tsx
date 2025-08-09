@@ -11,6 +11,7 @@ import Saved from './pages/Saved';
 import Messages from './pages/Messages';
 import Profile from './pages/Profile';
 import ListingDetails from './pages/ListingDetails';
+import Reviews from './pages/Reviews';
 import { ListingsProvider } from './state/ListingsContext';
 import AppErrorBoundary from './components/AppErrorBoundary';
 
@@ -30,6 +31,7 @@ const router = createBrowserRouter([
       { path: 'messages', element: <Messages /> },
       { path: 'profile', element: <Profile /> },
       { path: 'listing/:id', element: <ListingDetails /> },
+      { path: 'listing/:id/reviews', element: <Reviews /> },
     ],
   },
 ]);

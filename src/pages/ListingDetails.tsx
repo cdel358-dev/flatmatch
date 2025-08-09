@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import SafeImage from '../components/SafeImage';
 import { useListings } from '../state/ListingsContext';
+import { useReviews } from '../hooks/useReviews';
 
 /* ---------- Star rating ---------- */
 function StarRating({ value }: { value: number }) {
@@ -38,9 +39,8 @@ function Carousel({ images }: { images: string[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [idx, setIdx] = useState(0);
   const list = images.length ? images : ['', '', '']; // SafeImage -> /placeholder.webp
-  const itemW = 320; // px fallback used for scrollTo; visual width is responsive
+  const itemW = 320; // fallback for scrollTo
 
-  // Scroll to current index when idx changes
   useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
@@ -70,7 +70,6 @@ function Carousel({ images }: { images: string[] }) {
               className="snap-center shrink-0 basis-full sm:basis-2/3 md:basis-1/2"
             >
               <div className="overflow-hidden rounded-2xl">
-                {/* Larger height for visibility */}
                 <SafeImage src={src} alt={`Listing image ${i + 1}`} heightClass="h-64 md:h-72" />
               </div>
             </div>
@@ -118,31 +117,71 @@ export default function ListingDetails() {
   const navigate = useNavigate();
   const { getListingById, toggleSaved } = useListings();
 
+  // Base listing from shared context
   const base = useMemo(() => (id ? getListingById(id).listing : undefined), [id, getListingById]);
 
-  const listing = useMemo(() => ({
-    id: base?.id ?? id ?? 'unknown',
-    title: base?.title ?? 'Listing',
-    desc: base?.desc ??
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed leo quis parturient tristique mauris. Amet urna tortor tortor duis tellus risus.',
-    rating: base?.rating ?? 4.5,
-    reviews: base?.reviews ?? 150,
-    saved: base?.saved ?? false,
-    images: base?.images && base.images.length ? base.images : ['', '', ''],
-    flatmates: base?.flatmates ?? [
-      { id: 'f1', name: 'Alex', verified: true },
-      { id: 'f2', name: 'Sam', verified: true },
-      { id: 'f3', name: 'Riley', verified: true },
-    ],
-    tradeMeUrl: base?.tradeMeUrl ?? '#',
-    hostEmail: base?.hostEmail ?? 'host@example.com',
-  }), [base, id]);
+  // Load the real review list for this listing (mock or API via env)
+  const { rawReviews } = useReviews(id, 'relevant', { avg: base?.rating, count: base?.reviews });
+
+  // Derive synced rating + count (prefer listing fields, otherwise compute from loaded reviews)
+  const reviewsCount = rawReviews.length || base?.reviews || 0;
+  const avgRating =
+    typeof base?.rating === 'number'
+      ? base.rating
+      : rawReviews.length
+      ? rawReviews.reduce((s, r) => s + r.rating, 0) / rawReviews.length
+      : 0;
+
+  // Compose a view model with safe fallbacks (so page renders even if fields missing)
+  const listing = useMemo(
+    () => ({
+      id: base?.id ?? id ?? 'unknown',
+      title: base?.title ?? 'Listing',
+      desc:
+        base?.desc ??
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed leo quis parturient tristique mauris. Amet urna tortor tortor duis tellus risus.',
+      rating: avgRating,
+      reviews: reviewsCount,
+      saved: base?.saved ?? false,
+      images: (base?.images && base.images.length ? base.images : ['', '', '']) as string[],
+      flatmates:
+        base?.flatmates ??
+        [
+          { id: 'f1', name: 'Alex', verified: true },
+          { id: 'f2', name: 'Sam', verified: true },
+          { id: 'f3', name: 'Riley', verified: true },
+        ],
+      tradeMeUrl: base?.tradeMeUrl ?? '#',
+      hostEmail: base?.hostEmail ?? 'host@example.com',
+      subtitle: base?.subtitle,
+      price: base?.price,
+      loc: base?.loc,
+      savedFlag: base?.saved ?? false,
+    }),
+    [base, id, avgRating, reviewsCount]
+  );
 
   const emailHref = listing.hostEmail ? `mailto:${listing.hostEmail}` : undefined;
 
+  if (!base) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-6">
+        <p className="text-center text-slate-600 dark:text-slate-300">Listing not found.</p>
+        <div className="mt-4 text-center">
+          <button
+            onClick={() => navigate(-1)}
+            className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-400"
+          >
+            Go back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-4 pb-24 pt-3">
-      {/* Header row */}
+      {/* Top row: back + title/desc + bookmark */}
       <div className="mb-2 flex items-start justify-between">
         <button
           onClick={() => navigate(-1)}
@@ -159,13 +198,14 @@ export default function ListingDetails() {
           <p className="mt-1 text-sm text-slate-700 dark:text-slate-300">{listing.desc}</p>
         </div>
 
-        {/* Bookmark (transparent) */}
+        {/* Bookmark (transparent, matches Home style) */}
         <button
           onClick={() => toggleSaved(listing.id!)}
           className="p-1 text-slate-900 drop-shadow-sm hover:scale-110 dark:text-white"
-          aria-label={listing.saved ? 'Remove bookmark' : 'Add bookmark'}
+          aria-label={listing.savedFlag ? 'Remove bookmark' : 'Add bookmark'}
+          title={listing.savedFlag ? 'Remove bookmark' : 'Add bookmark'}
         >
-          {listing.saved ? (
+          {listing.savedFlag ? (
             <svg className="h-7 w-7" viewBox="0 0 24 24" fill="currentColor">
               <path d="M6 2a2 2 0 0 0-2 2v18l8-5.333L20 22V4a2 2 0 0 0-2-2H6z" />
             </svg>
@@ -177,7 +217,7 @@ export default function ListingDetails() {
         </button>
       </div>
 
-      {/* Edit icon + rating */}
+      {/* Rating row (left icon, right stars + count) */}
       <div className="mb-3 flex items-center justify-between">
         <span className="grid h-9 w-9 place-items-center rounded-lg border border-dashed border-slate-400 text-slate-500">
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -186,10 +226,14 @@ export default function ListingDetails() {
           </svg>
         </span>
         <div className="text-right">
-          <div className="inline-flex items-center gap-2">
+          <Link to={`/listing/${listing.id}/reviews`} className="inline-flex items-center gap-2">
             <StarRating value={listing.rating!} />
+          </Link>
+          <div className="text-xs text-slate-500">
+            (<Link to={`/listing/${listing.id}/reviews`} className="hover:underline">
+              {listing.reviews} reviews
+            </Link>)
           </div>
-          <div className="text-xs text-slate-500">({listing.reviews} reviews)</div>
         </div>
       </div>
 
@@ -225,6 +269,7 @@ export default function ListingDetails() {
           {(listing.flatmates ?? []).map((m) => (
             <div key={m.id} className="relative">
               <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-slate-300 dark:bg-slate-700">
+                {/* avatar placeholder */}
                 <svg className="h-8 w-8 opacity-60" viewBox="0 0 24 24" fill="currentColor">
                   <circle cx="12" cy="8" r="4" />
                   <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" />
