@@ -6,6 +6,10 @@ import './index.css';
 import App from './App';
 import About from './pages/About';
 import Home from './pages/Home';
+import Info from './pages/Info';
+import Saved from './pages/Saved';
+import Messages from './pages/Messages';
+import Profile from './pages/Profile';
 
 const router = createBrowserRouter([
   {
@@ -14,6 +18,10 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: 'about', element: <About /> },
+      { path: 'info', element: <Info /> },
+      { path: 'saved', element: <Saved /> },
+      { path: 'messages', element: <Messages /> },
+      { path: 'profile', element: <Profile /> },
     ],
   },
 ]);
@@ -21,5 +29,5 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <RouterProvider router={router} />
-  </StrictMode>,
+  </StrictMode>
 );

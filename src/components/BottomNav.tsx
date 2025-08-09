@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
   FiInfo,
   FiBookmark,
@@ -7,31 +7,56 @@ import {
   FiUser,
 } from 'react-icons/fi';
 
-export default function BottomNav() {
-  const { pathname } = useLocation();
+type IconType = React.ComponentType<{ size?: number }>;
 
-  const item = (
-    to: string,
-    label: string,
-    Icon: React.ComponentType<{ size?: number }>,
-  ) => {
-    const active = pathname === to;
-    return (
-      <Link
-        to={to}
-        aria-label={label}
-        className={`flex flex-col items-center justify-center gap-1 text-xs ${
-          active
+function NavItem({
+  to,
+  label,
+  Icon,
+}: {
+  to: string;
+  label: string;
+  Icon: IconType;
+}) {
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        [
+          'flex flex-col items-center justify-center gap-1 text-xs',
+          isActive
             ? 'text-blue-600 dark:text-blue-400'
-            : 'text-slate-600 dark:text-slate-300'
-        }`}
-      >
-        <Icon size={22} />
-        <span>{label}</span>
-      </Link>
-    );
-  };
+            : 'text-slate-600 dark:text-slate-300',
+        ].join(' ')
+      }
+      aria-label={label}
+    >
+      {({ isActive }) => (
+        <>
+          <Icon size={22} />
+          <span
+            className={[
+              'leading-none',
+              isActive ? 'font-semibold' : 'font-normal',
+            ].join(' ')}
+          >
+            {label}
+          </span>
+          {/* tiny active bar */}
+          <span
+            className={[
+              'mt-0.5 h-0.5 w-4 rounded-full',
+              isActive ? 'bg-blue-600 dark:bg-blue-400' : 'bg-transparent',
+            ].join(' ')}
+            aria-hidden
+          />
+        </>
+      )}
+    </NavLink>
+  );
+}
 
+export default function BottomNav() {
   return (
     <nav
       className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 border-t border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90"
@@ -39,11 +64,11 @@ export default function BottomNav() {
       role="navigation"
     >
       <div className="mx-auto flex h-full max-w-3xl items-center justify-between px-6">
-        {item('/info', 'Info', FiInfo)}
-        {item('/saved', 'Saved', FiBookmark)}
-        {item('/', 'Match', FiSearch)}
-        {item('/messages', 'Messages', FiMessageSquare)}
-        {item('/profile', 'Profile', FiUser)}
+        <NavItem to="/info" label="Info" Icon={FiInfo} />
+        <NavItem to="/saved" label="Saved" Icon={FiBookmark} />
+        <NavItem to="/" label="Match" Icon={FiSearch} />
+        <NavItem to="/messages" label="Messages" Icon={FiMessageSquare} />
+        <NavItem to="/profile" label="Profile" Icon={FiUser} />
       </div>
     </nav>
   );

@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Show focus outline only when navigating with keyboard */
+:focus-visible {
+  outline: 2px solid theme('colors.blue.500');
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
 @layer base {
   :root {
     --radius: 12px;
