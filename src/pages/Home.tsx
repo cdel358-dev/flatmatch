@@ -1,13 +1,15 @@
+// src/pages/Home.tsx
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import SafeImage from '../components/SafeImage';
 import SearchFilters, { Filters } from '../components/SearchFilters';
-import BookmarkBadge from '../components/BookmarkBadge';
+import { useListings } from '../state/ListingsContext';
 
 type Card = {
   id: string;
   title: string;
   subtitle?: string;
-  img?: string; // optional; SafeImage falls back to /placeholder.webp
+  img?: string; // SafeImage falls back to /placeholder.webp
   price?: string; // "$420/wk"
   badge?: string;
   type?: 'Studio' | '1BR' | '2BR' | 'Flatmate';
@@ -23,7 +25,10 @@ function priceToNum(p?: string): number | undefined {
 }
 
 export default function Home() {
-  // Search string is now local to Home
+  // Shared listings come from context so saved state is global
+  const { popular, nearby, toggleSaved } = useListings();
+
+  // Local UI state
   const [search, setSearch] = useState('');
   const [filters, setFilters] = useState<Filters>({
     location: '',
@@ -32,21 +37,6 @@ export default function Home() {
     type: 'Any',
     sort: 'Relevance',
   });
-
-  // Listings state (with saved toggling)
-  const [popular, setPopular] = useState<Card[]>([
-    { id: 'p1', title: 'Sunny 1BR near CBD', subtitle: 'Hamilton Central', price: '$420/wk', badge: 'Popular', type: '1BR', loc: 'Hamilton', km: 1.0, saved: true },
-    { id: 'p2', title: 'Modern studio', subtitle: 'Hillcrest', price: '$350/wk', type: 'Studio', loc: 'Hillcrest', km: 2.2 },
-    { id: 'p3', title: '2BR with parking', subtitle: 'Rototuna', price: '$520/wk', type: '2BR', loc: 'Rototuna', km: 4.5, saved: true },
-    { id: 'p4', title: 'Flatmate wanted', subtitle: 'Frankton', price: '$210/wk', type: 'Flatmate', loc: 'Frankton', km: 3.6 },
-  ]);
-
-  const [nearby, setNearby] = useState<Card[]>([
-    { id: 'n1', title: 'City studio', subtitle: '0.5 km • CBD', price: '$380/wk', badge: 'Nearby', type: 'Studio', loc: 'CBD', km: 0.5 },
-    { id: 'n2', title: 'Cozy 1BR', subtitle: '1.2 km • River Rd', price: '$410/wk', type: '1BR', loc: 'River Rd', km: 1.2 },
-    { id: 'n3', title: 'Shared room', subtitle: '1.9 km • Five Cross Rds', price: '$180/wk', type: 'Flatmate', loc: 'Five Cross Rds', km: 1.9 },
-    { id: 'n4', title: 'Large 2BR', subtitle: '2.4 km • Claudelands', price: '$540/wk', type: '2BR', loc: 'Claudelands', km: 2.4 },
-  ]);
 
   const categories = useMemo<Card[]>(
     () => [
@@ -63,7 +53,6 @@ export default function Home() {
   const applyFilters = (list: Card[]): Card[] => {
     let out = list.slice();
 
-    // search text
     if (search) {
       const q = search.toLowerCase();
       out = out.filter(
@@ -73,7 +62,6 @@ export default function Home() {
       );
     }
 
-    // location contains
     if (filters.location) {
       const locQ = filters.location.toLowerCase();
       out = out.filter(
@@ -84,12 +72,10 @@ export default function Home() {
       );
     }
 
-    // type
     if (filters.type !== 'Any') {
       out = out.filter((x) => x.type === filters.type);
     }
 
-    // price
     if (filters.minPrice !== undefined) {
       out = out.filter((x) => (priceToNum(x.price) ?? Infinity) >= filters.minPrice!);
     }
@@ -97,7 +83,6 @@ export default function Home() {
       out = out.filter((x) => (priceToNum(x.price) ?? 0) <= filters.maxPrice!);
     }
 
-    // sort
     if (filters.sort === 'Price: Low → High') {
       out.sort((a, b) => (priceToNum(a.price) ?? 1e9) - (priceToNum(b.price) ?? 1e9));
     } else if (filters.sort === 'Price: High → Low') {
@@ -105,36 +90,28 @@ export default function Home() {
     } else if (filters.sort === 'Nearest') {
       out.sort((a, b) => (a.km ?? 1e9) - (b.km ?? 1e9));
     }
-    // Relevance => leave order as-is
 
     return out;
   };
 
-  const popularFiltered = useMemo(() => applyFilters(popular), [popular, filters, search]);
-  const nearbyFiltered = useMemo(() => applyFilters(nearby), [nearby, filters, search]);
-
-  // Toggle saved state
-  const toggleSaved = (id: string, from: 'popular' | 'nearby') => {
-    if (from === 'popular') {
-      setPopular((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, saved: !item.saved } : item))
-      );
-    } else {
-      setNearby((prev) =>
-        prev.map((item) => (item.id === id ? { ...item, saved: !item.saved } : item))
-      );
-    }
-  };
+  const popularFiltered = useMemo(
+    () => applyFilters(popular as Card[]),
+    [popular, filters, search]
+  );
+  const nearbyFiltered = useMemo(
+    () => applyFilters(nearby as Card[]),
+    [nearby, filters, search]
+  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
-      {/* Title block — shown on all screen sizes */}
+      {/* Title */}
       <div className="mb-3">
         <h1 className="text-2xl font-bold">Flat Match</h1>
         <p className="text-slate-600 dark:text-slate-300">Find your perfect flat.</p>
       </div>
 
-      {/* Search directly below title */}
+      {/* Search under title */}
       <div className="relative mb-3">
         <input
           value={search}
@@ -147,7 +124,7 @@ export default function Home() {
         <span className="pointer-events-none absolute left-3 top-2.5 text-slate-400">🔍</span>
       </div>
 
-      {/* Filters summary + expandable panel */}
+      {/* Filters */}
       <SearchFilters onApply={setFilters} defaultFilters={filters} />
 
       {/* Categories */}
@@ -163,7 +140,15 @@ export default function Home() {
       <Section title="Popular">
         <HorizontalScroller big>
           {popularFiltered.map((p) => (
-            <ListingTile key={p.id} {...p} onToggleSaved={() => toggleSaved(p.id, 'popular')} />
+            <Link key={p.id} to={`/listing/${p.id}`} className="block">
+              <ListingTile
+                {...p}
+                onToggleSaved={(e) => {
+                  e.preventDefault(); // don’t navigate when tapping the bookmark
+                  toggleSaved(p.id);
+                }}
+              />
+            </Link>
           ))}
         </HorizontalScroller>
       </Section>
@@ -172,7 +157,15 @@ export default function Home() {
       <Section title="Nearby">
         <HorizontalScroller big>
           {nearbyFiltered.map((n) => (
-            <ListingTile key={n.id} {...n} onToggleSaved={() => toggleSaved(n.id, 'nearby')} />
+            <Link key={n.id} to={`/listing/${n.id}`} className="block">
+              <ListingTile
+                {...n}
+                onToggleSaved={(e) => {
+                  e.preventDefault();
+                  toggleSaved(n.id);
+                }}
+              />
+            </Link>
           ))}
         </HorizontalScroller>
       </Section>
@@ -226,6 +219,7 @@ function CategoryTile({ title, img }: Card) {
 }
 
 function ListingTile({
+  id,
   title,
   subtitle,
   img,
@@ -233,33 +227,34 @@ function ListingTile({
   badge,
   saved,
   onToggleSaved,
-}: Card & { onToggleSaved: () => void }) {
+}: Card & { onToggleSaved: (e: React.MouseEvent<HTMLButtonElement>) => void }) {
   return (
-    <article className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <article
+      className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900"
+      data-id={id}
+    >
       <div className="relative">
         <SafeImage src={img} alt={title} heightClass="h-40" />
 
-        {/* optional corner badge like 'Popular' */}
+        {/* Optional left badge */}
         {badge && (
           <span className="absolute left-2 top-2 rounded-full bg-white/90 px-2 py-0.5 text-xs font-medium text-slate-800 shadow">
             {badge}
           </span>
         )}
 
-        {/* bookmark toggle (transparent background) */}
+        {/* Bookmark toggle (no bg, outline vs filled) */}
         <button
           onClick={onToggleSaved}
           className="absolute right-2 top-2 p-1 text-white drop-shadow-md hover:scale-110 transition-transform dark:text-white"
           aria-label={saved ? 'Remove bookmark' : 'Add bookmark'}
         >
           {saved ? (
-            // Filled bookmark icon
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
               <path d="M6 2a2 2 0 0 0-2 2v18l8-5.333L20 22V4a2 2 0 0 0-2-2H6z" />
             </svg>
           ) : (
-            // Outline bookmark icon
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 2a2 2 0 0 0-2 2v18l8-5.333L20 22V4a2 2 0 0 0-2-2H6z" />
             </svg>
           )}
@@ -268,14 +263,8 @@ function ListingTile({
 
       <div className="p-3">
         <h3 className="text-sm font-semibold">{title}</h3>
-        {subtitle && (
-          <p className="text-xs text-slate-600 dark:text-slate-300">{subtitle}</p>
-        )}
-        {price && (
-          <p className="mt-1 text-sm font-medium text-blue-600 dark:text-blue-400">
-            {price}
-          </p>
-        )}
+        {subtitle && <p className="text-xs text-slate-600 dark:text-slate-300">{subtitle}</p>}
+        {price && <p className="mt-1 text-sm font-medium text-blue-600 dark:text-blue-400">{price}</p>}
       </div>
     </article>
   );

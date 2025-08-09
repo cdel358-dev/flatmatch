@@ -10,11 +10,17 @@ import Info from './pages/Info';
 import Saved from './pages/Saved';
 import Messages from './pages/Messages';
 import Profile from './pages/Profile';
+import ListingDetails from './pages/ListingDetails';
+import { ListingsProvider } from './state/ListingsContext';
 
 const router = createBrowserRouter([
   {
     path: '/',
-    element: <App />,
+    element: (
+      <ListingsProvider>
+        <App />
+      </ListingsProvider>
+    ),
     children: [
       { index: true, element: <Home /> },
       { path: 'about', element: <About /> },
@@ -22,6 +28,7 @@ const router = createBrowserRouter([
       { path: 'saved', element: <Saved /> },
       { path: 'messages', element: <Messages /> },
       { path: 'profile', element: <Profile /> },
+      { path: 'listing/:id', element: <ListingDetails /> },
     ],
   },
 ]);
@@ -29,5 +36,5 @@ const router = createBrowserRouter([
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <RouterProvider router={router} />
-  </StrictMode>
+  </StrictMode>,
 );
