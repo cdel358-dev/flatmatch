@@ -17,6 +17,10 @@ import UserProfile from './pages/UserProfile';
 import ListRoom from './pages/ListRoom';
 import Bookmarks from './pages/Bookmarks';
 import Glossary from "./pages/info/Glossary";
+import Etiquette from "./pages/info/Etiquette";
+import Suburbs from "./pages/info/Suburbs";
+import TenancyChecklist from "./pages/info/TenancyChecklist";
+
 
 
 import { ListingsProvider } from './state/ListingsContext';
@@ -44,6 +48,9 @@ const router = createBrowserRouter([
       { path: 'list-room', element: <ListRoom /> },
       { path: 'bookmarks', element: <Bookmarks /> },
       { path: '/info/glossary', element: <Glossary /> },
+      { path: "info/etiquette", element: <Etiquette /> },
+      { path: "info/suburbs", element: <Suburbs /> },
+      { path: "info/tenancy-checklist", element: <TenancyChecklist /> },
     ],
   },
 ]);
