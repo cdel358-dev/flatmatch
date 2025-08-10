@@ -1,7 +1,7 @@
 // src/pages/info/TenancyChecklist.tsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import checklistPdf from "../../data/tenancy-checklist.pdf";
+import checklistPdf from "/tenancy-checklist.pdf";
 import BackButton from "../../components/BackButton";
 
 /* ---------- Data ---------- */

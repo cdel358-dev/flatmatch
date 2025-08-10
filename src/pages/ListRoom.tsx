@@ -61,7 +61,7 @@ export default function ListRoom() {
     const id = addListing({
       title: title.trim() || `${uiType} room in ${location}`,
       subtitle: `${location}${available ? ` • Available ${new Date(available).toLocaleDateString()}` : ''}`,
-      price: rent === '' ? undefined : `$${rent}/wk`,
+      price: typeof rent === 'string' && rent === '' ? undefined : `$${rent}/wk`,
       type: toListingType(uiType),
       loc: location,
       desc,

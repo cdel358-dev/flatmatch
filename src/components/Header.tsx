@@ -33,6 +33,28 @@ export default function Header() {
     label: string;
     Icon: React.ComponentType<{ size?: number }>;
   }) => (
+    // <NavLink
+    //   to={to}
+    //   onClick={() => setOpen(false)}
+    //   className={({ isActive }) =>
+    //     [
+    //       'flex items-center gap-2 rounded-xl px-3 py-2 text-sm',
+    //       isActive
+    //         ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300'
+    //         : 'text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800',
+    //     ].join(' ')
+    //   }
+    // >
+    //   <Icon size={18} />
+    //   <span className="leading-none">{label}</span>
+    //   {/* active dot */}
+    //   <span
+    //     className={({ isActive }: { isActive: boolean }) =>
+    //       isActive ? 'ml-auto h-2 w-2 rounded-full bg-blue-600' : ''
+    //     }
+    //   />
+    // </NavLink>
+
     <NavLink
       to={to}
       onClick={() => setOpen(false)}
@@ -45,15 +67,17 @@ export default function Header() {
         ].join(' ')
       }
     >
-      <Icon size={18} />
-      <span className="leading-none">{label}</span>
-      {/* active dot */}
-      <span
-        className={({ isActive }: { isActive: boolean }) =>
-          isActive ? 'ml-auto h-2 w-2 rounded-full bg-blue-600' : ''
-        }
-      />
+      {({ isActive }) => (
+        <>
+          <Icon size={18} />
+          <span className="leading-none">{label}</span>
+          {isActive && (
+            <span className="ml-auto h-2 w-2 rounded-full bg-blue-600" />
+          )}
+        </>
+      )}
     </NavLink>
+
   );
 
   return (
