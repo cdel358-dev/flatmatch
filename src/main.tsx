@@ -30,7 +30,7 @@ const router = createBrowserRouter([
     path: '/',
     element: (
       <ListingsProvider>
-        <NotesProvider> {/* ⬅️ NEW wrapper */}
+        <NotesProvider>
           <App />
         </NotesProvider>
       </ListingsProvider>

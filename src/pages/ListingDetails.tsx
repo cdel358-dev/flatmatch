@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import SafeImage from '../components/SafeImage';
 import { useListings } from '../state/ListingsContext';
 import { useReviews } from '../hooks/useReviews';
-
+import SafeImage from '../components/SafeImage';
+import NotesModal from '../components/NotesModal';
 
 /* ---------- Star rating ---------- */
 function StarRating({ value }: { value: number }) {
@@ -117,6 +117,7 @@ export default function ListingDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { getListingById, toggleSaved } = useListings();
+  const [showNotes, setShowNotes] = useState(false);
 
   // Base listing from shared context
   const base = useMemo(() => (id ? getListingById(id).listing : undefined), [id, getListingById]);
@@ -222,7 +223,7 @@ export default function ListingDetails() {
       <div className="mb-3 flex items-center justify-between">
         {/* Notes button */}
         <button
-          onClick={() => id && navigate(`/listing/${id}/notes`)}
+          onClick={() => setShowNotes(true)}
           className="grid h-9 w-9 place-items-center rounded-lg border border-dashed border-slate-400 text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
           aria-label="Notes"
           title="Notes"
@@ -232,6 +233,7 @@ export default function ListingDetails() {
             <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
           </svg>
         </button>
+
 
         {/* Star rating component */}
         <div className="text-right">
@@ -325,6 +327,13 @@ export default function ListingDetails() {
     </div>
   )}
 </section>
+
+{showNotes && (
+  <NotesModal
+    listingId={listing.id!}
+    onClose={() => setShowNotes(false)}
+  />
+)}
 
     </div>
   );
