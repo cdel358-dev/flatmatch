@@ -220,12 +220,20 @@ export default function ListingDetails() {
 
       {/* Rating row (left icon, right stars + count) */}
       <div className="mb-3 flex items-center justify-between">
-        <span className="grid h-9 w-9 place-items-center rounded-lg border border-dashed border-slate-400 text-slate-500">
+        {/* Notes button */}
+        <button
+          onClick={() => id && navigate(`/listing/${id}/notes`)}
+          className="grid h-9 w-9 place-items-center rounded-lg border border-dashed border-slate-400 text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Notes"
+          title="Notes"
+        >
           <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
             <path d="M12 20h9" />
             <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
           </svg>
-        </span>
+        </button>
+
+        {/* Star rating component */}
         <div className="text-right">
           <Link to={`/listing/${listing.id}/reviews`} className="inline-flex items-center gap-2">
             <StarRating value={listing.rating!} />
