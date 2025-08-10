@@ -13,6 +13,7 @@ import Profile from './pages/Profile';
 import ListingDetails from './pages/ListingDetails';
 import Reviews from './pages/Reviews';
 import FlatmateProfile from './pages/FlatmateProfile';
+import UserProfile from './pages/UserProfile';
 import { ListingsProvider } from './state/ListingsContext';
 import AppErrorBoundary from './components/AppErrorBoundary';
 
@@ -30,10 +31,11 @@ const router = createBrowserRouter([
       { path: 'info', element: <Info /> },
       { path: 'saved', element: <Saved /> },
       { path: 'messages', element: <Messages /> },
-      { path: 'profile', element: <Profile /> },
+      { path: 'profile', element: <UserProfile /> },
       { path: 'listing/:id', element: <ListingDetails /> },
       { path: 'listing/:id/reviews', element: <Reviews /> },
       { path: 'listing/:id/flatmate/:mid', element: <FlatmateProfile /> },
+      { path: 'user/:uid', element: <UserProfile /> },
     ],
   },
 ]);
