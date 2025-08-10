@@ -14,6 +14,7 @@ import ListingDetails from './pages/ListingDetails';
 import Reviews from './pages/Reviews';
 import FlatmateProfile from './pages/FlatmateProfile';
 import UserProfile from './pages/UserProfile';
+import ListRoom from './pages/ListRoom';
 import { ListingsProvider } from './state/ListingsContext';
 import AppErrorBoundary from './components/AppErrorBoundary';
 
@@ -36,6 +37,7 @@ const router = createBrowserRouter([
       { path: 'listing/:id/reviews', element: <Reviews /> },
       { path: 'listing/:id/flatmate/:mid', element: <FlatmateProfile /> },
       { path: 'user/:uid', element: <UserProfile /> },
+      { path: 'list-room', element: <ListRoom /> },
     ],
   },
 ]);

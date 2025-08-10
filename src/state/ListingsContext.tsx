@@ -1,9 +1,9 @@
 // src/state/ListingsContext.tsx
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { popularMock, nearbyMock } from '../data/mockListings';
 import { flatmatesByListing } from '../data/mockFlatmates';
 
-/* -------- Types you can expand later -------- */
+/* ========= Types ========= */
 export type ListingType = 'Studio' | '1BR' | '2BR' | 'Flatmate';
 
 export type Flatmate = {
@@ -18,7 +18,7 @@ export type Listing = {
   id: string;
   title: string;
   subtitle?: string;
-  img?: string;
+  img?: string | null;   // thumbnail for cards
   price?: string;
   badge?: string;
   type?: ListingType;
@@ -28,22 +28,46 @@ export type Listing = {
   desc?: string;
   rating?: number;
   reviews?: number;
-  images?: string[];
+  images?: string[];     // gallery
   flatmates?: Flatmate[];
   tradeMeUrl?: string;
   hostEmail?: string;
-  // optional: visibleReviews?: number;
+  photos?: string[];     // legacy alias some pages might use
 };
 
-/* -------- Helper: attach flatmates from mock map if missing -------- */
+/* ========= Helpers ========= */
+const STORAGE_KEY = 'flatmatch:listings:v1';
+
 function attachFlatmates<T extends { id: string; flatmates?: Flatmate[] }>(list: T[]): T[] {
   return list.map((l) => ({
     ...l,
-    flatmates: l.flatmates && l.flatmates.length ? l.flatmates : (flatmatesByListing[l.id] ?? []),
+    flatmates: l.flatmates?.length ? l.flatmates : (flatmatesByListing[l.id] ?? []),
   }));
 }
 
-/* -------- Context shape -------- */
+type PersistShape = { popular: Listing[]; nearby: Listing[]; savedAt: number };
+
+function loadFromStorage(): PersistShape | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as PersistShape;
+    if (!parsed || !Array.isArray(parsed.popular) || !Array.isArray(parsed.nearby)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function saveToStorage(state: PersistShape) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // ignore storage quota or JSON errors
+  }
+}
+
+/* ========= Context ========= */
 type ListingsState = {
   popular: Listing[];
   nearby: Listing[];
@@ -52,16 +76,34 @@ type ListingsState = {
   ) => { listing: Listing | undefined; source: 'popular' | 'nearby' | undefined; index: number };
   toggleSaved: (id: string) => void;
   updateListing: (id: string, patch: Partial<Listing>) => void;
-  refresh: () => void; // reload from mocks (you can replace with API later)
+  refresh: () => void;
+  addListing: (l: Omit<Listing, 'id'> & { id?: string }) => string; // used by ListRoom
 };
 
 const Ctx = createContext<ListingsState | null>(null);
 
-/* -------- Provider -------- */
+/* ========= Provider ========= */
 export function ListingsProvider({ children }: { children: React.ReactNode }) {
-  // Seed from mocks; attach flatmates for convenience
-  const [popular, setPopular] = useState<Listing[]>(attachFlatmates([...popularMock]));
-  const [nearby, setNearby] = useState<Listing[]>(attachFlatmates([...nearbyMock]));
+  // Initial hydrate: load from storage, otherwise seed with mocks
+  const storage = loadFromStorage();
+  const [popular, setPopular] = useState<Listing[]>(
+    attachFlatmates(storage?.popular ?? [...popularMock])
+  );
+  const [nearby, setNearby] = useState<Listing[]>(
+    attachFlatmates(storage?.nearby ?? [...nearbyMock])
+  );
+
+  // Persist on changes (debounced) — avoids writing on every keystroke
+  const persistTimer = useRef<number | null>(null);
+  useEffect(() => {
+    if (persistTimer.current) window.clearTimeout(persistTimer.current);
+    persistTimer.current = window.setTimeout(() => {
+      saveToStorage({ popular, nearby, savedAt: Date.now() });
+    }, 200);
+    return () => {
+      if (persistTimer.current) window.clearTimeout(persistTimer.current);
+    };
+  }, [popular, nearby]);
 
   const getListingById: ListingsState['getListingById'] = (id) => {
     const pIdx = popular.findIndex((l) => l.id === id);
@@ -69,7 +111,6 @@ export function ListingsProvider({ children }: { children: React.ReactNode }) {
     const nIdx = nearby.findIndex((l) => l.id === id);
     if (nIdx !== -1) return { listing: nearby[nIdx], source: 'nearby', index: nIdx };
     return { listing: undefined, source: undefined, index: -1 };
-    // (If you later add a DB/service, look there too.)
   };
 
   const setLane = (source: 'popular' | 'nearby', updater: (arr: Listing[]) => Listing[]) => {
@@ -94,20 +135,52 @@ export function ListingsProvider({ children }: { children: React.ReactNode }) {
   };
 
   const refresh = () => {
-    // Replace with API calls later; keep attachFlatmates so names show under avatars
-    setPopular(attachFlatmates([...popularMock]));
-    setNearby(attachFlatmates([...nearbyMock]));
+    // Reset to mocks (and persist)
+    const p = attachFlatmates([...popularMock]);
+    const n = attachFlatmates([...nearbyMock]);
+    setPopular(p);
+    setNearby(n);
+    saveToStorage({ popular: p, nearby: n, savedAt: Date.now() });
+  };
+
+  const addListing: ListingsState['addListing'] = (l) => {
+    const id = l.id ?? `u${Date.now()}`;
+    const images = l.images ?? l.photos ?? [];
+    const listing: Listing = {
+      id,
+      title: l.title || 'New room',
+      subtitle: l.subtitle || l.loc,
+      img: l.img ?? images[0] ?? null,   // ensure card thumbnail
+      price: l.price,
+      badge: l.badge ?? 'New',
+      type: l.type,
+      loc: l.loc,
+      km: l.km,
+      saved: false,
+      desc: l.desc ?? '',
+      rating: l.rating ?? 0,
+      reviews: l.reviews ?? 0,
+      images,
+      flatmates: l.flatmates ?? [],
+      tradeMeUrl: l.tradeMeUrl ?? '#',
+      hostEmail: l.hostEmail,
+    };
+    setPopular((prev) => [listing, ...prev]); // insert at top of Popular
+    // nearby unchanged
+    // Persist immediately for this action so refresh after publish still shows it
+    saveToStorage({ popular: [listing, ...popular], nearby, savedAt: Date.now() });
+    return id;
   };
 
   const value = useMemo<ListingsState>(
-    () => ({ popular, nearby, getListingById, toggleSaved, updateListing, refresh }),
+    () => ({ popular, nearby, getListingById, toggleSaved, updateListing, refresh, addListing }),
     [popular, nearby]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
-/* -------- Hook -------- */
+/* ========= Hook ========= */
 export function useListings() {
   const ctx = useContext(Ctx);
   if (!ctx) throw new Error('useListings must be used within a ListingsProvider');
