@@ -18,7 +18,8 @@ export default function SafeImage({
   const [failed, setFailed] = useState(false);
 
   // Always have a fallback to local placeholder
-  const finalSrc = !src || failed ? '/placeholder.webp' : src;
+  // const finalSrc = !src || failed ? '/placeholder.webp' : src;
+  const finalSrc = src;
 
   return (
     <div className={`relative w-full ${heightClass} ${className}`}>
