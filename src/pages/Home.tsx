@@ -1,6 +1,6 @@
 // src/pages/Home.tsx
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import SafeImage from '../components/SafeImage';
 import SearchFilters, { Filters } from '../components/SearchFilters';
 import { useListings } from '../state/ListingsContext';
@@ -25,6 +25,8 @@ function priceToNum(p?: string): number | undefined {
 }
 
 export default function Home() {
+  const navigate = useNavigate();
+
   // Shared listings come from context so saved state is global
   const { popular, nearby, toggleSaved } = useListings();
 
@@ -49,6 +51,21 @@ export default function Home() {
     ],
     []
   );
+
+  // When Apply is clicked in SearchFilters, push to /search with params
+  const handleApplyAndGo = (next: Filters) => {
+    setFilters(next); // keep Home state updated
+
+    const params = new URLSearchParams();
+    if (search) params.set('q', search);
+    if (next.location) params.set('location', next.location);
+    if (next.minPrice !== undefined) params.set('min', String(next.minPrice));
+    if (next.maxPrice !== undefined) params.set('max', String(next.maxPrice));
+    if (next.type && next.type !== 'Any') params.set('type', next.type);
+    if (next.sort) params.set('sort', next.sort);
+
+    navigate(`/search?${params.toString()}`);
+  };
 
   const applyFilters = (list: Card[]): Card[] => {
     let out = list.slice();
@@ -116,6 +133,12 @@ export default function Home() {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              // Allow pressing Enter to jump to results with current filters
+              handleApplyAndGo(filters);
+            }
+          }}
           type="text"
           placeholder="Search..."
           className="w-full rounded-xl border border-slate-300 px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-slate-600 dark:bg-slate-900"
@@ -124,14 +147,21 @@ export default function Home() {
         <span className="pointer-events-none absolute left-3 top-2.5 text-slate-400">🔍</span>
       </div>
 
-      {/* Filters */}
-      <SearchFilters onApply={setFilters} defaultFilters={filters} />
+      {/* Filters (Apply navigates to /search with params) */}
+      <SearchFilters onApply={handleApplyAndGo} defaultFilters={filters} />
 
       {/* Categories */}
       <Section title="Categories">
         <HorizontalScroller>
           {categories.map((c) => (
-            <CategoryTile key={c.id} {...c} />
+            <Link
+              key={c.id}
+              to={`/search?category=${encodeURIComponent(c.title)}`}
+              className="block"
+              aria-label={`View ${c.title} listings`}
+            >
+              <CategoryTile {...c} />
+            </Link>
           ))}
         </HorizontalScroller>
       </Section>
@@ -197,10 +227,10 @@ function HorizontalScroller({
       <div className="no-scrollbar flex gap-4">
         {Array.isArray(children)
           ? children.map((child, i) => (
-              <div key={i} className={`snap-start ${itemWidth}`}>
-                {child}
-              </div>
-            ))
+            <div key={i} className={`snap-start ${itemWidth}`}>
+              {child}
+            </div>
+          ))
           : children}
       </div>
     </div>
@@ -243,7 +273,7 @@ function ListingTile({
           </span>
         )}
 
-        {/* Bookmark toggle (no bg, outline vs filled) */}
+        {/* Inline bookmark toggle */}
         <button
           onClick={onToggleSaved}
           className="absolute right-2 top-2 p-1 text-white drop-shadow-md hover:scale-110 transition-transform dark:text-white"

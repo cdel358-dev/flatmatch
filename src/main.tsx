@@ -6,10 +6,9 @@ import './index.css';
 import App from './App';
 import About from './pages/About';
 import Home from './pages/Home';
+import SearchResults from './pages/SearchResults';
 import Info from './pages/Info';
-// import Saved from './pages/Saved';
 import Messages from './pages/Messages';
-import Profile from './pages/Profile';
 import ListingDetails from './pages/ListingDetails';
 import Reviews from './pages/Reviews';
 import FlatmateProfile from './pages/FlatmateProfile';
@@ -36,9 +35,9 @@ const router = createBrowserRouter([
     ),
     children: [
       { index: true, element: <Home /> },
+      { path: 'search', element: <SearchResults /> },
       { path: 'about', element: <About /> },
       { path: 'info', element: <Info /> },
-      // { path: 'saved', element: <Saved /> },
       { path: 'messages', element: <Messages /> },
       { path: 'profile', element: <UserProfile /> },
       { path: 'listing/:id', element: <ListingDetails /> },
