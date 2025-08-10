@@ -16,6 +16,9 @@ import FlatmateProfile from './pages/FlatmateProfile';
 import UserProfile from './pages/UserProfile';
 import ListRoom from './pages/ListRoom';
 import Bookmarks from './pages/Bookmarks';
+import Glossary from "./pages/info/Glossary";
+
+
 import { ListingsProvider } from './state/ListingsContext';
 import AppErrorBoundary from './components/AppErrorBoundary';
 
@@ -40,6 +43,7 @@ const router = createBrowserRouter([
       { path: 'user/:uid', element: <UserProfile /> },
       { path: 'list-room', element: <ListRoom /> },
       { path: 'bookmarks', element: <Bookmarks /> },
+      { path: '/info/glossary', element: <Glossary /> },
     ],
   },
 ]);
