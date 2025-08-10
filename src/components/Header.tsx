@@ -87,7 +87,7 @@ export default function Header() {
             {open && (
               <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-800 dark:bg-slate-900">
                 <MenuItem to="/info" label="Info" Icon={FiInfo} />
-                <MenuItem to="/saved" label="Saved" Icon={FiBookmark} />
+                <MenuItem to="/bookmarks" label="Saved" Icon={FiBookmark} />
                 <MenuItem to="/" label="Match" Icon={FiSearch} />
                 <MenuItem to="/messages" label="Messages" Icon={FiMessageSquare} />
                 <MenuItem to="/profile" label="Profile" Icon={FiUser} />
@@ -102,7 +102,7 @@ export default function Header() {
         <div className="mx-auto flex max-w-7xl gap-2 px-4 py-2">
           {[
             { to: '/info', label: 'Info', Icon: FiInfo },
-            { to: '/saved', label: 'Saved', Icon: FiBookmark },
+            { to: '/bookmarks', label: 'Saved', Icon: FiBookmark },
             { to: '/', label: 'Match', Icon: FiSearch },
             { to: '/messages', label: 'Messages', Icon: FiMessageSquare },
             { to: '/profile', label: 'Profile', Icon: FiUser },

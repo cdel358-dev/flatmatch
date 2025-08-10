@@ -65,7 +65,7 @@ export default function BottomNav() {
     >
       <div className="mx-auto flex h-full max-w-3xl items-center justify-between px-6">
         <NavItem to="/info" label="Info" Icon={FiInfo} />
-        <NavItem to="/saved" label="Saved" Icon={FiBookmark} />
+        <NavItem to="/bookmarks" label="Saved" Icon={FiBookmark} />
         <NavItem to="/" label="Match" Icon={FiSearch} />
         <NavItem to="/messages" label="Messages" Icon={FiMessageSquare} />
         <NavItem to="/profile" label="Profile" Icon={FiUser} />
