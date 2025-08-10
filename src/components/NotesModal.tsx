@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, UIEvent } from "react";
 import { useNotesContext } from "../state/NotesContext";
 import { XMarkIcon, TrashIcon, PencilIcon, CheckIcon } from "@heroicons/react/24/outline";
 
@@ -19,14 +19,22 @@ export default function NotesModal({
   const [text, setText] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
+  const [scrolled, setScrolled] = useState(false);
+
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const onScroll = (e: UIEvent<HTMLDivElement>) => {
+    const el = e.currentTarget;
+    setScrolled(el.scrollTop > 2);
+  };
 
   return (
     <div className="fixed inset-0 z-[60]">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      {/* Sheet */}
-      <div className="absolute inset-x-0 top-[5vh] mx-auto w-[min(100%,44rem)] rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
-        {/* Header */}
+
+      {/* Dialog */}
+      <div className="absolute inset-x-0 top-[5vh] mx-auto w-[min(100%,44rem)] overflow-hidden rounded-2xl bg-white shadow-xl ring-1 ring-black/5">
+        {/* Modal header */}
         <div className="flex items-center justify-between border-b px-5 py-4">
           <h2 className="text-lg font-semibold">Notes</h2>
           <button
@@ -38,33 +46,47 @@ export default function NotesModal({
           </button>
         </div>
 
-        {/* Body */}
-        <div className="max-h-[70vh] overflow-auto px-5 py-4">
-          {/* Add note */}
-          <div className="rounded-xl border p-3">
-            <label htmlFor="note" className="mb-2 block text-sm font-medium text-gray-700">
-              Add a note for this listing
-            </label>
-            <textarea
-              id="note"
-              rows={3}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              className="w-full rounded-xl border p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="e.g., Ask about parking, confirm move-in date…"
-            />
-            <div className="mt-3 flex justify-end">
-              <button
-                onClick={() => {
-                  const t = text.trim();
-                  if (!t) return;
-                  addNote(listingId, t);
-                  setText("");
-                }}
-                className="rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
-              >
-                Save Note
-              </button>
+        {/* Scrollable body */}
+        <div
+          ref={bodyRef}
+          onScroll={onScroll}
+          className="max-h-[70vh] overflow-auto px-5 pb-5"
+        >
+          {/* Sticky add-note composer */}
+          <div
+            className={[
+              "sticky top-0 z-10 -mx-5 px-5 pt-4 pb-3 bg-white",
+              "border-b",
+              scrolled ? "shadow-sm" : "shadow-none",
+            ].join(" ")}
+          >
+            <div className="rounded-xl border p-3">
+              <label htmlFor="note" className="mb-2 block text-sm font-medium text-gray-700">
+                Add a note for this listing
+              </label>
+              <textarea
+                id="note"
+                rows={3}
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                className="w-full rounded-xl border p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                placeholder="e.g., Ask about parking, confirm move-in date…"
+              />
+              <div className="mt-3 flex justify-end">
+                <button
+                  onClick={() => {
+                    const t = text.trim();
+                    if (!t) return;
+                    addNote(listingId, t);
+                    setText("");
+                    // keep focus in composer for rapid add
+                    setTimeout(() => document.getElementById("note")?.focus(), 0);
+                  }}
+                  className="rounded-xl bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
+                >
+                  Save Note
+                </button>
+              </div>
             </div>
           </div>
 
