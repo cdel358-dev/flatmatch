@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import SafeImage from '../components/SafeImage';
 import { usersById, type User } from '../data/mockUsers';
+import BackButton from "../components/BackButton";
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   <h2 className="mb-2 text-sm font-semibold tracking-wide text-slate-500 dark:text-slate-400">
@@ -44,15 +45,11 @@ export default function UserProfile() {
     <div className="min-h-dvh bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
       {/* Top bar (no banner bg) */}
       <div className="px-4 pt-3">
-        <button
-          onClick={() => navigate(-1)}
-          aria-label="Back"
-          className="rounded-full p-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-        >
-          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 18 9 12l6-6" />
-          </svg>
-        </button>
+        <BackButton
+          className="p-1 -ml-1 rounded hover:bg-gray-100 active:bg-gray-200"
+          iconClassName="h-6 w-6 text-gray-700"
+          label="" // no text, just the arrow
+        />
       </div>
 
       {/* Header */}

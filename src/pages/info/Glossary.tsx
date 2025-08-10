@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import glossaryData from "../../data/glossary.json";
+import BackButton from "../../components/BackButton";
 
 function BackArrow({ className = "h-6 w-6 text-gray-700" }) {
   return (
@@ -44,9 +45,11 @@ export default function Glossary() {
       {/* Sticky Header */}
       <div className="sticky top-14 z-30 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/80">
         <div className="flex items-center gap-2 py-2">
-          <button onClick={() => navigate(-1)} className="p-1 -ml-1 rounded hover:bg-gray-100 active:bg-gray-200">
-            <BackArrow />
-          </button>
+        <BackButton
+          className="p-1 -ml-1 rounded hover:bg-gray-100 active:bg-gray-200"
+          iconClassName="h-6 w-6 text-gray-700"
+          label="" // no text, just the arrow
+        />
           <h1 className="text-xl font-semibold">Glossary of Flatting Terms</h1>
         </div>
         <div className="pb-2">

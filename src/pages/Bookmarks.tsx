@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useListings } from "../state/ListingsContext";
 import SafeImage from "../components/SafeImage";
 import BookmarkButton from "../components/BookmarkButton";
+import BackButton from "../components/BackButton";
 
 export default function Bookmarks() {
   const navigate = useNavigate();
@@ -21,18 +22,13 @@ export default function Bookmarks() {
   return (
     <div className="mx-auto max-w-5xl px-4 pb-12 pt-3 text-slate-900 dark:text-slate-100">
       {/* Header */}
-      <div className="mb-4 flex items-center gap-2">
-        <button
-          onClick={() => navigate(-1)}
-          aria-label="Back"
-          className="rounded-full p-1 hover:bg-slate-100 dark:hover:bg-slate-800"
-        >
-          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 18 9 12l6-6" />
-          </svg>
-        </button>
-        <h1 className="flex-1 text-center text-2xl font-extrabold">Bookmarked Listings</h1>
-        <div className="w-7" />
+      <div className="flex items-center gap-2 mb-4">
+        <BackButton
+          className="p-1 -ml-1 rounded hover:bg-gray-100 active:bg-gray-200"
+          iconClassName="h-6 w-6 text-gray-700"
+          label="" // no text, just the arrow
+        />
+        <h1 className="text-xl font-semibold">Bookmarked Listings</h1>
       </div>
 
       {saved.length === 0 ? (
@@ -52,16 +48,14 @@ export default function Bookmarks() {
                 onKeyDown={(e) => e.key === "Enter" && navigate(`/listing/${l.id}`)}
                 className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
               >
-                {/* Image area (same as Home) */}
+                {/* Image area */}
                 <div className="relative h-44 w-full overflow-hidden bg-slate-200 dark:bg-slate-800">
                   <SafeImage src={img} alt={l.title} heightClass="h-44" />
-
-                  {/* Bookmark (white badge) */}
                   <BookmarkButton
                     isBookmarked={!!l.saved}
                     onToggle={(e) => {
                       e?.stopPropagation();
-                      toggleSaved(l.id); // will drop from list immediately
+                      toggleSaved(l.id);
                     }}
                   />
                 </div>

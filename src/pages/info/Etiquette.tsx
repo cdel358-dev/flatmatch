@@ -1,15 +1,6 @@
 // src/pages/info/Etiquette.tsx
 import { useNavigate, Link } from "react-router-dom";
-
-/* Back arrow (inline SVG, no deps) */
-function BackArrow({ className = "h-6 w-6 text-gray-700" }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d="M10 19l-7-7 7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M3 12h18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-    </svg>
-  );
-}
+import BackButton from "../../components/BackButton";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -28,13 +19,11 @@ export default function Etiquette() {
       {/* Sticky header */}
       <div className="sticky top-14 z-30 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/80">
         <div className="flex items-center gap-2 py-2">
-          <button
-            onClick={() => navigate(-1)}
+          <BackButton
             className="p-1 -ml-1 rounded hover:bg-gray-100 active:bg-gray-200"
-            aria-label="Go back"
-          >
-            <BackArrow />
-          </button>
+            iconClassName="h-6 w-6 text-gray-700"
+            label="" // no text, just the arrow
+          />
           <h1 className="text-xl font-semibold">Flatting Etiquette & Onboarding</h1>
         </div>
 

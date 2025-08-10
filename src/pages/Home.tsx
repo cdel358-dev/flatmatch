@@ -107,7 +107,7 @@ export default function Home() {
     <div className="mx-auto max-w-7xl px-4 py-4 md:py-6">
       {/* Title */}
       <div className="mb-3">
-        <h1 className="text-2xl font-bold">Flat Match</h1>
+        {/* <h1 className="text-2xl font-bold">Flat Match</h1> */}
         <p className="text-slate-600 dark:text-slate-300">Find your perfect flat.</p>
       </div>
 
