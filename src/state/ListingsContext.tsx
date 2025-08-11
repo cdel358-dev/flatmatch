@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { popularMock, nearbyMock } from '../data/mockListings';
 import { flatmatesByListing } from '../data/mockFlatmates';
+import { loadListingImages, preloadListingImages } from "../lib/imageManifest";
 
 /* ========= Types ========= */
 export type ListingType = 'Studio' | '1BR' | '2BR' | 'Flatmate';
@@ -85,6 +86,18 @@ const Ctx = createContext<ListingsState | null>(null);
 /* ========= Provider ========= */
 export function ListingsProvider({ children }: { children: React.ReactNode }) {
   // Initial hydrate: load from storage, otherwise seed with mocks
+  const LS_VERSION_KEY = 'flatmatch:seedVersion';
+  const SEED_VERSION = 3;
+  
+  useEffect(() => {
+    const current = Number(localStorage.getItem(LS_VERSION_KEY) || '0');
+    if (current !== SEED_VERSION) {
+      // Clear the single bundle your provider uses
+      localStorage.removeItem('flatmatch:listings:v1'); // STORAGE_KEY in this file
+      localStorage.setItem(LS_VERSION_KEY, String(SEED_VERSION));
+    }
+  }, []);
+  
   const storage = loadFromStorage();
   const [popular, setPopular] = useState<Listing[]>(
     attachFlatmates(storage?.popular ?? [...popularMock])
@@ -92,6 +105,32 @@ export function ListingsProvider({ children }: { children: React.ReactNode }) {
   const [nearby, setNearby] = useState<Listing[]>(
     attachFlatmates(storage?.nearby ?? [...nearbyMock])
   );
+
+  
+  useEffect(() => {
+    // 1) warm-up (first dozen so the grid pops immediately)
+    const initialIds = [...popularMock, ...nearbyMock].slice(0, 12).map(l => l.id);
+    preloadListingImages(initialIds);
+  
+    // 2) hydrate all images and merge into state once
+    let cancelled = false;
+    (async () => {
+      const all = [...popularMock, ...nearbyMock];
+      const pairs = await Promise.all(all.map(async l => [l.id, await loadListingImages(l.id)] as const));
+      if (cancelled) return;
+  
+      setPopular(prev => prev.map(l => {
+        const match = pairs.find(([id]) => id === l.id);
+        return match ? { ...l, images: match[1] } : l;
+      }));
+      setNearby(prev => prev.map(l => {
+        const match = pairs.find(([id]) => id === l.id);
+        return match ? { ...l, images: match[1] } : l;
+      }));
+    })();
+  
+    return () => { cancelled = true; };
+  }, []);
 
   // Persist on changes (debounced) — avoids writing on every keystroke
   const persistTimer = useRef<number | null>(null);
@@ -104,6 +143,47 @@ export function ListingsProvider({ children }: { children: React.ReactNode }) {
       if (persistTimer.current) window.clearTimeout(persistTimer.current);
     };
   }, [popular, nearby]);
+
+  // Hydrate gallery images from public manifests and set card thumbnail (img)
+  useEffect(() => {
+    // Capture initial IDs
+    const ids = [...popularMock, ...nearbyMock].map(l => l.id);
+
+    // Warm up a few so the grid feels instant
+    preloadListingImages(ids.slice(0, 12));
+
+    let cancelled = false;
+    (async () => {
+      const pairs = await Promise.all(ids.map(async id => [id, await loadListingImages(id)] as const));
+      if (cancelled) return;
+      const map = new Map(pairs);
+
+      setPopular(prev =>
+        prev.map(l => {
+          const imgs = l.images?.length ? l.images : (map.get(l.id) ?? []);
+          return {
+            ...l,
+            images: imgs,
+            img: l.img ?? imgs[0] ?? l.img, // ensure card thumbnail
+          };
+        })
+      );
+      setNearby(prev =>
+        prev.map(l => {
+          const imgs = l.images?.length ? l.images : (map.get(l.id) ?? []);
+          return {
+            ...l,
+            images: imgs,
+            img: l.img ?? imgs[0] ?? l.img,
+          };
+        })
+      );
+    })();
+
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const getListingById: ListingsState['getListingById'] = (id) => {
     const pIdx = popular.findIndex((l) => l.id === id);
