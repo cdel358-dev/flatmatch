@@ -3,6 +3,8 @@ import { useNavigate, useParams } from 'react-router-dom';
 import SafeImage from '../components/SafeImage';
 import { usersById, type User } from '../data/mockUsers';
 import BackButton from "../components/BackButton";
+import { TrashIcon } from '@heroicons/react/24/outline';
+import { clearFlatMatchStorage } from '../utils/storage';
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   <h2 className="mb-2 text-sm font-semibold tracking-wide text-slate-500 dark:text-slate-400">
@@ -139,6 +141,22 @@ export default function UserProfile() {
             </div>
           </div>
         </section>
+      
+        {/* Clear data */}
+        <button
+          onClick={() => {
+            if (!confirm('This will remove saved listings/bookmarks and reload. Continue?')) return;
+            clearFlatMatchStorage();
+            // works for GitHub Pages subpath (/flatmatch/)
+            location.replace(import.meta.env.BASE_URL);
+          }}
+          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-600/60 dark:text-red-400 dark:hover:bg-red-900/20"
+          aria-label="Clear saved FlatMatch data"
+        >
+          <TrashIcon className="h-5 w-5" />
+          Clear data
+        </button>
+        
       </div>
     </div>
   );
