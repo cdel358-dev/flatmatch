@@ -25,6 +25,7 @@ function priceToNum(p?: string): number | undefined {
 }
 
 export default function Home() {
+  const asset = (p: string) => `${import.meta.env.BASE_URL}${p.replace(/^\//, '')}`;
   const navigate = useNavigate();
 
   // Shared listings come from context so saved state is global
@@ -42,12 +43,12 @@ export default function Home() {
 
   const categories = useMemo<Card[]>(
     () => [
-      { id: 'c1', title: 'Studios' },
-      { id: 'c2', title: '1-Bed' },
-      { id: 'c3', title: '2-Bed' },
-      { id: 'c4', title: 'Flatmates' },
-      { id: 'c5', title: 'Pet Friendly' },
-      { id: 'c6', title: 'Near Uni' },
+      { id: 'c1', title: 'Studios',       img: asset('images/categories/studios.jpg') },
+      { id: 'c2', title: '1-Bed',         img: asset('images/categories/1-bed.jpg') },
+      { id: 'c3', title: '2-Bed',         img: asset('images/categories/2-bed.jpg') },
+      { id: 'c4', title: 'Flatmates',     img: asset('images/categories/flatmates.jpg') },
+      { id: 'c5', title: 'Pet Friendly',  img: asset('images/categories/pet-friendly.jpg') },
+      { id: 'c6', title: 'Near Uni',      img: asset('images/categories/near-uni.jpg') },
     ],
     []
   );

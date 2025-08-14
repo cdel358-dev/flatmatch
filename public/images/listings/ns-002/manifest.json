@@ -1,0 +1,10 @@
+{
+    "version": 1,
+    "images": [
+        { "file": "1.jpg", "alt": "" },
+        { "file": "2.jpg", "alt": "" },
+        { "file": "3.jpg", "alt": "" },
+        { "file": "4.jpg", "alt": "" },
+        { "file": "5.jpg", "alt": "" }
+    ]
+}
