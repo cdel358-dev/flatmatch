@@ -69,9 +69,13 @@ export default function NotesModal({
                 rows={3}
                 value={text}
                 onChange={(e) => setText(e.target.value)}
+                maxLength={150} // Limit input to 150 characters
                 className="w-full rounded-xl border p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 placeholder="e.g., Ask about parking, confirm move-in date…"
               />
+              <div className="mt-1 text-sm text-gray-500">
+                {text.length}/150 characters
+              </div>
               <div className="mt-3 flex justify-end">
                 <button
                   onClick={() => {
