@@ -20,6 +20,7 @@ import Glossary from './pages/info/Glossary';
 import Etiquette from './pages/info/Etiquette';
 import Suburbs from './pages/info/Suburbs';
 import TenancyChecklist from './pages/info/TenancyChecklist';
+import Tips from './pages/info/Tips';
 
 import { ListingsProvider } from './state/ListingsContext';
 import { NotesProvider } from './state/NotesContext';
@@ -54,6 +55,7 @@ const router = createBrowserRouter(
         { path: 'info/etiquette', element: <Etiquette /> },
         { path: 'info/suburbs', element: <Suburbs /> },
         { path: 'info/tenancy-checklist', element: <TenancyChecklist /> },
+        { path: '/info/tips', element: <Tips /> },
       ],
     },
   ],

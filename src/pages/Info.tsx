@@ -9,6 +9,7 @@ export default function Info() {
     { slug: 'etiquette', title: 'Flatting Etiquette Tips', description: 'Tips to help you get along with flatmates.' },
     { slug: 'suburbs', title: 'Suburb Profiles', description: 'Explore different suburbs before you move.' },
     { slug: 'tenancy-checklist', title: 'NZ Tenancy Checklist', description: 'Everything you need to know before signing.' },
+    { slug: 'tips', title: 'Tips From Our Users', description: 'Short, practical advice from real flat seekers.' },
   ];
 
   return (
