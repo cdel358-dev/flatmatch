@@ -21,6 +21,7 @@ import Etiquette from './pages/info/Etiquette';
 import Suburbs from './pages/info/Suburbs';
 import TenancyChecklist from './pages/info/TenancyChecklist';
 import Tips from './pages/info/Tips';
+import LocationPage from './pages/Location';
 
 import { ListingsProvider } from './state/ListingsContext';
 import { NotesProvider } from './state/NotesContext';
@@ -46,6 +47,7 @@ const router = createBrowserRouter(
         { path: 'profile', element: <UserProfile /> },
         { path: 'listing/:id', element: <ListingDetails /> },
         { path: 'listing/:id/notes', element: <NotesPage /> },
+        { path: '/listing/:id/location', element: <LocationPage /> },
         { path: 'listing/:id/reviews', element: <Reviews /> },
         { path: 'listing/:id/flatmate/:mid', element: <FlatmateProfile /> },
         { path: 'user/:uid', element: <UserProfile /> },

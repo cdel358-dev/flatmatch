@@ -27,3 +27,40 @@ export const nearbyMock: Listing[] = [
   { id: "west-002", title: "Henderson En-suite, Quiet Cul-de-sac", subtitle: "Henderson • Bus & Rail", type: "1BR", loc: "Henderson", km: 14.2, price: "330", saved: false, rating: 4.3, reviews: 16, images: [] },
   { id: "west-003", title: "Te Atatū South Studio — Motorway Close", subtitle: "Te Atatū South • SH16", type: "Studio", loc: "Te Atatū South", km: 12.8, price: "315", saved: false, rating: 4.1, reviews: 11, images: [] },
 ];
+
+// --- Map support (non-breaking) ---------------------------------------------
+
+/** Optional specific map addresses per listing id (fictional but plausible). */
+export const mapAddressById: Record<string, string> = {
+  // Near UoA (10)
+  "uoa-001": "1 Princes Street, Auckland CBD 1010",
+  "uoa-002": "85 Park Road, Grafton, Auckland 1023",
+  "uoa-003": "14 St Georges Bay Road, Parnell, Auckland 1052",
+  "uoa-004": "9 Teed Street, Newmarket, Auckland 1023",
+  "uoa-005": "27 Basque Road, Eden Terrace, Auckland 1010",
+  "uoa-006": "134 Ponsonby Road, Ponsonby, Auckland 1011",
+  "uoa-007": "26 Carlton Gore Road, Grafton, Auckland 1023",
+  "uoa-008": "11 Britomart Place, Auckland CBD 1010",
+  "uoa-009": "341 Karangahape Road, Newton, Auckland 1010",
+  "uoa-010": "31 St Stephens Avenue, Parnell, Auckland 1052",
+
+  // North Shore (5)
+  "ns-001": "48 Lake Road, Takapuna, Auckland 0622",
+  "ns-002": "24 Milford Road, Milford, Auckland 0620",
+  "ns-003": "2 College Road, Northcote, Auckland 0627",
+  "ns-004": "3 Civic Crescent, Albany, Auckland 0632",
+  "ns-005": "1 Victoria Road, Devonport, Auckland 0624",
+
+  // West Auckland (3)
+  "west-001": "3053 Great North Road, New Lynn, Auckland 0600",
+  "west-002": "5 Railside Avenue, Henderson, Auckland 0612",
+  "west-003": "182 Te Atatū Road, Te Atatū South, Auckland 0610",
+};
+
+/**
+ * Build a destination string for maps/directions.
+ * Falls back to a generic "title + loc + Auckland" if a specific address isn't mapped.
+ */
+export function getMapAddress(l: Listing): string {
+  return mapAddressById[l.id] ?? `${l.title} ${('loc' in l && (l as any).loc) || ''} Auckland`.trim();
+}

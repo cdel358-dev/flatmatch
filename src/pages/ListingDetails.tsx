@@ -27,7 +27,7 @@ function StarRating({ value }: { value: number }) {
                 ? { fill: 'currentColor', style: { clipPath: 'inset(0 50% 0 0)' } }
                 : { fill: 'none', stroke: 'currentColor', strokeWidth: 2 })}
           >
-            <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" />
           </svg>
         );
       })}
@@ -131,8 +131,8 @@ export default function ListingDetails() {
     typeof base?.rating === 'number'
       ? base.rating
       : rawReviews.length
-      ? rawReviews.reduce((s, r) => s + r.rating, 0) / rawReviews.length
-      : 0;
+        ? rawReviews.reduce((s, r) => s + r.rating, 0) / rawReviews.length
+        : 0;
 
   // Compose a view model with safe fallbacks (so page renders even if fields missing)
   const listing = useMemo(
@@ -221,19 +221,61 @@ export default function ListingDetails() {
 
       {/* Rating row (left icon, right stars + count) */}
       <div className="mb-3 flex items-center justify-between">
-        {/* Notes button */}
-        <button
-          onClick={() => setShowNotes(true)}
-          className="grid h-9 w-9 place-items-center rounded-lg border border-dashed border-slate-400 text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          aria-label="Notes"
-          title="Notes"
-        >
-          <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-            <path d="M12 20h9" />
-            <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
-          </svg>
-        </button>
+        {/* Notes & Location buttons */}
+        <div className="flex items-center gap-2">
+          {/* Notes button */}
+          <button
+            onClick={() => setShowNotes(true)}
+            className="grid h-9 w-9 place-items-center rounded-lg border border-dashed border-slate-400 text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Notes"
+            title="Notes"
+          >
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+            </svg>
+          </button>
 
+          {/* Location button */}
+          {/* <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+              (listing.propertyName ? listing.propertyName + ' ' : '') + (listing.location || '')
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="grid h-9 w-9 place-items-center rounded-lg border border-dashed border-slate-400 text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Open in Maps"
+            title="Open in Maps"
+          >
+            <svg
+              className="h-5 w-5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path d="M12 21s-6-4.35-6-9a6 6 0 1 1 12 0c0 4.65-6 9-6 9Z" />
+              <circle cx="12" cy="12" r="2.5" />
+            </svg>
+          </a> */}
+          <button
+            onClick={() => navigate(`/listing/${listing.id}/location`)}
+            className="grid h-9 w-9 place-items-center rounded-lg border border-dashed border-slate-400 text-slate-500 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Open Location"
+            title="Open Location"
+          >
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+              <path d="M12 21s-6-4.35-6-9a6 6 0 1 1 12 0c0 4.65-6 9-6 9Z" />
+              <circle cx="12" cy="12" r="2.5" />
+            </svg>
+          </button>
+        </div>
 
         {/* Star rating component */}
         <div className="text-right">
@@ -275,65 +317,65 @@ export default function ListingDetails() {
 
       {/* Flatmates (no trailing paragraph) */}
       <section className="mb-2">
-  <h2 className="mb-3 text-lg font-semibold">Flatmates</h2>
+        <h2 className="mb-3 text-lg font-semibold">Flatmates</h2>
 
-  {(!listing.flatmates || listing.flatmates.length === 0) ? (
-    <div className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-      Be the first to join this flat!
-    </div>
-  ) : (
-    <div className="flex items-start gap-6">
-      {listing.flatmates.map((m) => (
-        <Link
-          key={m.id}
-          to={`/listing/${listing.id}/flatmate/${m.id}`}
-          className="group block w-16 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-          aria-label={`View ${m.name}'s profile`}
-        >
-          {/* Wrapper is relative; badge is positioned against this, not the avatar (which is overflow-hidden) */}
-          <div className="relative mx-auto w-16">
-            <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-slate-300 dark:bg-slate-700">
-              {/* avatar placeholder (SafeImage if you have one) */}
-              <svg className="h-8 w-8 opacity-60" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="8" r="4" />
-                <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" />
-              </svg>
-            </div>
-
-            {m.verified && (
-              <span
-                className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-green-500 text-white ring-2 ring-white shadow-sm"
-                title="Verified"
+        {(!listing.flatmates || listing.flatmates.length === 0) ? (
+          <div className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+            Be the first to join this flat!
+          </div>
+        ) : (
+          <div className="flex items-start gap-6">
+            {listing.flatmates.map((m) => (
+              <Link
+                key={m.id}
+                to={`/listing/${listing.id}/flatmate/${m.id}`}
+                className="group block w-16 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label={`View ${m.name}'s profile`}
               >
-                <svg
-                  className="h-3 w-3"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={3}
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="m5 13 4 4L19 7" />
-                </svg>
-              </span>
-            )}
-          </div>
+                {/* Wrapper is relative; badge is positioned against this, not the avatar (which is overflow-hidden) */}
+                <div className="relative mx-auto w-16">
+                  <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-slate-300 dark:bg-slate-700">
+                    {/* avatar placeholder (SafeImage if you have one) */}
+                    <svg className="h-8 w-8 opacity-60" viewBox="0 0 24 24" fill="currentColor">
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" />
+                    </svg>
+                  </div>
 
-          {/* Name under avatar */}
-          <div className="mt-2 line-clamp-1 text-xs font-medium text-slate-700 group-hover:underline dark:text-slate-200">
-            {m.name}
-          </div>
-        </Link>
-      ))}
-    </div>
-  )}
-</section>
+                  {m.verified && (
+                    <span
+                      className="absolute -bottom-1 -right-1 grid h-5 w-5 place-items-center rounded-full bg-green-500 text-white ring-2 ring-white shadow-sm"
+                      title="Verified"
+                    >
+                      <svg
+                        className="h-3 w-3"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth={3}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m5 13 4 4L19 7" />
+                      </svg>
+                    </span>
+                  )}
+                </div>
 
-{showNotes && (
-  <NotesModal
-    listingId={listing.id!}
-    onClose={() => setShowNotes(false)}
-  />
-)}
+                {/* Name under avatar */}
+                <div className="mt-2 line-clamp-1 text-xs font-medium text-slate-700 group-hover:underline dark:text-slate-200">
+                  {m.name}
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {showNotes && (
+        <NotesModal
+          listingId={listing.id!}
+          onClose={() => setShowNotes(false)}
+        />
+      )}
 
     </div>
   );
