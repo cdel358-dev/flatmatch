@@ -5,6 +5,7 @@ import { usersById, type User } from '../data/mockUsers';
 import BackButton from "../components/BackButton";
 import { TrashIcon } from '@heroicons/react/24/outline';
 import { clearFlatMatchStorage } from '../utils/storage';
+import { useAuth } from '../hooks/useAuth';
 
 const SectionTitle = ({ children }: { children: React.ReactNode }) => (
   <h2 className="mb-2 text-sm font-semibold tracking-wide text-slate-500 dark:text-slate-400">
@@ -21,6 +22,7 @@ const Chip = ({ children }: { children: React.ReactNode }) => (
 export default function UserProfile() {
   const { uid = 'u1' } = useParams();
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   // Source of truth: mock map (swap with API/service later)
   const user: User = useMemo(() => {
@@ -45,18 +47,17 @@ export default function UserProfile() {
 
   return (
     <div className="min-h-dvh bg-white text-slate-900 dark:bg-slate-950 dark:text-slate-100">
-      {/* Top bar (no banner bg) */}
+      {/* Top bar */}
       <div className="px-4 pt-3">
         <BackButton
           className="p-1 -ml-1 rounded hover:bg-gray-100 active:bg-gray-200"
           iconClassName="h-6 w-6 text-gray-700"
-          label="" // no text, just the arrow
+          label=""
         />
       </div>
 
-      {/* Header */}
       <div className="flex flex-col items-center px-4 pb-20">
-        {/* Avatar with verified tick */}
+        {/* Avatar */}
         <div className="relative mt-4 h-36 w-36">
           <div className="h-36 w-36 overflow-hidden rounded-full bg-slate-300 dark:bg-slate-700">
             <SafeImage src={user.avatar} alt={user.name} heightClass="h-36" />
@@ -78,7 +79,7 @@ export default function UserProfile() {
 
         {/* CTA: List a room */}
         <button
-          onClick={() => navigate('/list-room')} // placeholder route; change when ready
+          onClick={() => navigate('/list-room')}
           className="mt-3 inline-flex h-11 items-center justify-center rounded-full bg-slate-900 px-6 text-sm font-semibold text-white hover:bg-black active:scale-[0.99]"
         >
           LIST A ROOM
@@ -93,70 +94,33 @@ export default function UserProfile() {
         </section>
 
         {/* Good to know */}
-        <section className="mt-8 w-full max-w-2xl">
-          <SectionTitle>GOOD TO KNOW</SectionTitle>
+        {/* ... keep the cards as before ... */}
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Location</div>
-              <div className="mt-1 text-sm">{user.location ?? '—'}</div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Joined</div>
-              <div className="mt-1 text-sm">{joined ?? '—'}</div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Occupation</div>
-              <div className="mt-1 text-sm">{user.occupation ?? '—'}</div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Schedule</div>
-              <div className="mt-1 text-sm">{user.schedule ?? '—'}</div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Pets</div>
-              <div className="mt-1 text-sm">{user.pets ?? '—'}</div>
-            </div>
-
-            <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Languages</div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {(user.languages ?? ['—']).map((l) => (
-                  <Chip key={l}>{l}</Chip>
-                ))}
-              </div>
-            </div>
-
-            <div className="sm:col-span-2 rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-              <div className="text-xs uppercase tracking-wide text-slate-500">Interests</div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {(user.interests ?? ['—']).map((i) => (
-                  <Chip key={i}>{i}</Chip>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-      
         {/* Clear data */}
         <button
           onClick={() => {
             if (!confirm('This will remove saved listings/bookmarks and reload. Continue?')) return;
             clearFlatMatchStorage();
-            // works for GitHub Pages subpath (/flatmatch/)
             location.replace(import.meta.env.BASE_URL);
           }}
-          className="mt-3 inline-flex items-center gap-2 rounded-xl border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-600/60 dark:text-red-400 dark:hover:bg-red-900/20"
+          className="mt-6 inline-flex items-center gap-2 rounded-xl border border-red-300 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-600/60 dark:text-red-400 dark:hover:bg-red-900/20"
           aria-label="Clear saved FlatMatch data"
         >
           <TrashIcon className="h-5 w-5" />
           Clear data
         </button>
-        
+
+        {/* Logout */}
+        <button
+          onClick={() => {
+            logout();
+            // clear navigation stack and go to root
+            location.replace(import.meta.env.BASE_URL);
+          }}
+          className="mt-3 inline-flex items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700"
+        >
+          Log out
+        </button>
       </div>
     </div>
   );

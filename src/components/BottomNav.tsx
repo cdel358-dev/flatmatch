@@ -1,4 +1,5 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
+import { useMemo } from 'react';
 import {
   FiInfo,
   FiBookmark,
@@ -6,6 +7,7 @@ import {
   FiMessageSquare,
   FiUser,
 } from 'react-icons/fi';
+import { useAuth } from '../hooks/useAuth';
 
 type IconType = React.ComponentType<{ size?: number }>;
 
@@ -57,6 +59,25 @@ function NavItem({
 }
 
 export default function BottomNav() {
+  const { pathname } = useLocation();
+  const { isAuthenticated } = useAuth();
+
+  // const isAuthenticated = useMemo(() => {
+  //   try {
+  //     const raw = localStorage.getItem('fm_user');
+  //     if (!raw) return false;
+  //     const u = JSON.parse(raw);
+  //     return Boolean(u && (u.id || u.email));
+  //   } catch {
+  //     return false;
+  //   }
+  // }, []);
+
+  // Hide when logged out or on auth routes
+  if (!isAuthenticated || pathname.startsWith('/auth')) {
+    return null;
+  }
+
   return (
     <nav
       className="md:hidden fixed bottom-0 left-0 right-0 z-50 h-16 border-t border-slate-200 bg-white/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/90"
