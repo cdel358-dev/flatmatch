@@ -18,19 +18,11 @@ export default function LocationPage() {
     const listing = useMemo(() => (id ? getListingById(id).listing : undefined), [id, getListingById]);
     const title = listing?.propertyName || listing?.title || "Listing";
     const suburb = listing?.location || "";
-    // const destQuery = encodeURIComponent(`${title} ${suburb} New Zealand`.trim());
+    const destQuery = encodeURIComponent(getMapAddress(listing!));
 
     // Two pins via Google Maps "directions" embed (no API key).
-    //   const mapsEmbed = `https://www.google.com/maps?output=embed&saddr=${ORIGIN_LAT},${ORIGIN_LNG}&daddr=${destQuery}`;
-    //   const mapsExternal = `https://www.google.com/maps/dir/?api=1&origin=${ORIGIN_LAT},${ORIGIN_LNG}&destination=${destQuery}`;
-
-    // const mapsEmbed = `https://www.google.com/maps?output=embed&saddr=${encodeURIComponent(ORIGIN_ADDRESS)}&daddr=${destQuery}`;
-    // const mapsExternal = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(ORIGIN_ADDRESS)}&destination=${destQuery}`;
-
-    const destQuery = encodeURIComponent(getMapAddress(listing!));
     const mapsEmbed = `https://www.google.com/maps?output=embed&saddr=${encodeURIComponent(ORIGIN_ADDRESS)}&daddr=${destQuery}`;
     const mapsExternal = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(ORIGIN_ADDRESS)}&destination=${destQuery}`;
-
 
     return (
         // <div className="p-4">
