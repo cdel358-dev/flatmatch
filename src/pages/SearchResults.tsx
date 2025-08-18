@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { useListings } from '../state/ListingsContext';
 import SafeImage from '../components/SafeImage';
@@ -20,10 +20,10 @@ type Listing = {
 
 // Map category chip to type (for the first 4)
 const TYPE_MAP: Record<string, Listing['type']> = {
-  'Studios': 'Studio',
+  Studios: 'Studio',
   '1-Bed': '1BR',
   '2-Bed': '2BR',
-  'Flatmates': 'Flatmate',
+  Flatmates: 'Flatmate',
 };
 
 const priceToNum = (p?: string) => {
@@ -34,7 +34,6 @@ const priceToNum = (p?: string) => {
 
 // ---- URL <-> Filters helpers ----
 function paramsToFilters(params: URLSearchParams): Filters {
-  const q = params.get('q') ?? '';
   const location = params.get('location') ?? '';
   const min = params.get('min');
   const max = params.get('max');
@@ -47,29 +46,55 @@ function paramsToFilters(params: URLSearchParams): Filters {
     maxPrice: max ? Number(max) : undefined,
     type,
     sort,
-    // NOTE: SearchFilters doesn't carry plain 'q', we’ll handle it separately
   };
 }
 
-function filtersToParams(base: URLSearchParams, next: Filters & { q?: string; category?: string }) {
+function filtersToParams(
+  base: URLSearchParams,
+  next: Filters & { q?: string; category?: string }
+) {
   const out = new URLSearchParams(base.toString());
   // overwrite
   if (next.q !== undefined) out.set('q', next.q);
   if (next.category !== undefined) out.set('category', next.category);
 
-  if (next.location) out.set('location', next.location); else out.delete('location');
-  if (next.minPrice !== undefined) out.set('min', String(next.minPrice)); else out.delete('min');
-  if (next.maxPrice !== undefined) out.set('max', String(next.maxPrice)); else out.delete('max');
-  if (next.type && next.type !== 'Any') out.set('type', next.type); else out.delete('type');
-  if (next.sort) out.set('sort', next.sort); else out.delete('sort');
+  if (next.location) out.set('location', next.location);
+  else out.delete('location');
+
+  if (next.minPrice !== undefined) out.set('min', String(next.minPrice));
+  else out.delete('min');
+
+  if (next.maxPrice !== undefined) out.set('max', String(next.maxPrice));
+  else out.delete('max');
+
+  if (next.type && next.type !== 'Any') out.set('type', next.type);
+  else out.delete('type');
+
+  if (next.sort) out.set('sort', next.sort);
+  else out.delete('sort');
 
   return out;
+}
+
+/** Read saved onboarding prefs */
+function readPrefs() {
+  try {
+    const raw = localStorage.getItem('fm_prefs');
+    return raw ? JSON.parse(raw) as { priceMin?: number; priceMax?: number; location?: string } : {};
+  } catch {
+    return {};
+  }
+}
+
+/** True if there are no URL filters set (so we can provide sensible defaults) */
+function urlHasNoFilters(p: URLSearchParams) {
+  return !p.get('location') && !p.get('min') && !p.get('max') && !p.get('type') && !p.get('q') && !p.get('category');
 }
 
 export default function SearchResults() {
   const [params, setParams] = useSearchParams();
   const category = params.get('category') ?? ''; // from category tiles
-  const q = params.get('q') ?? '';               // free text
+  const q = params.get('q') ?? ''; // free text
   const { popular, nearby, toggleSaved } = useListings();
 
   // Merge + dedupe
@@ -81,6 +106,35 @@ export default function SearchResults() {
   }, [popular, nearby]);
 
   const urlFilters = paramsToFilters(params);
+
+  // 🔹 NEW: Auto-apply saved prefs after sign-up, or when arriving with no filters
+  useEffect(() => {
+    const fromSignup = localStorage.getItem('fm_prefs_auto') === '1';
+    const noFilters = urlHasNoFilters(params);
+
+    if (fromSignup || noFilters) {
+      const prefs = readPrefs();
+      // Consume the one-time flag so this doesn't keep firing
+      if (fromSignup) localStorage.removeItem('fm_prefs_auto');
+
+      // Build next filters using saved prefs; keep existing type/sort if present
+      const next: Filters = {
+        location: prefs.location || urlFilters.location || '',
+        minPrice: prefs.priceMin ?? urlFilters.minPrice,
+        maxPrice: prefs.priceMax ?? urlFilters.maxPrice,
+        type: urlFilters.type || 'Any',
+        sort: urlFilters.sort || 'Relevance',
+      };
+
+      // If these result in any real changes, update the URL once
+      const newParams = filtersToParams(params, { ...next, q, category });
+      const changed = newParams.toString() !== params.toString();
+      if (changed) {
+        setParams(newParams, { replace: true });
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // run once on mount
 
   // Apply filters + query + category
   const results = useMemo(() => {
@@ -159,7 +213,7 @@ export default function SearchResults() {
       {/* Title */}
       <div className="mb-3 flex items-center gap-2">
         <BackButton
-          to="/" // <-- go to Home instead of history back
+          to="/"
           className="p-1 -ml-1 rounded hover:bg-gray-100 active:bg-gray-200"
           iconClassName="h-6 w-6 text-gray-700"
           label=""
@@ -168,7 +222,7 @@ export default function SearchResults() {
           Matches · {results.length} result{results.length === 1 ? '' : 's'}
         </h1>
       </div>
-  
+
       {/* Search Bar */}
       <div className="relative mb-3">
         <input
@@ -190,10 +244,10 @@ export default function SearchResults() {
           🔍
         </span>
       </div>
-  
+
       {/* Filters */}
       <SearchFilters onApply={handleApplyFilters} defaultFilters={urlFilters} />
-  
+
       {/* List */}
       {results.length === 0 ? (
         <div className="mt-6 rounded-xl border border-dashed border-slate-300 p-6 text-center text-slate-500 dark:border-slate-700">
@@ -209,34 +263,32 @@ export default function SearchResults() {
                 to={`/listing/${l.id}`}
                 className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
               >
-
                 {/* Image */}
                 <div className="relative h-44 w-full overflow-hidden bg-slate-200 dark:bg-slate-800">
-                <SafeImage src={img} alt={l.title} heightClass="h-44" />
+                  <SafeImage src={img} alt={l.title} heightClass="h-44" />
 
-                {/* Inline bookmark toggle — same behavior as Home */}
-                <button
+                  {/* Inline bookmark toggle — same behavior as Home */}
+                  <button
                     onClick={(e) => {
-                    e?.preventDefault();
-                    e?.stopPropagation();
-                    toggleSaved(l.id);
+                      e?.preventDefault();
+                      e?.stopPropagation();
+                      toggleSaved(l.id);
                     }}
-                    className="absolute right-2 top-2 p-1 text-white drop-shadow-md hover:scale-110 transition-transform dark:text-white"
+                    className="absolute right-2 top-2 p-1 text-white drop-shadow-md transition-transform hover:scale-110 dark:text-white"
                     aria-label={l.saved ? 'Remove bookmark' : 'Add bookmark'}
-                >
+                  >
                     {l.saved ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M6 2a2 2 0 0 0-2 2v18l8-5.333L20 22V4a2 2 0 0 0-2-2H6z" />
-                    </svg>
+                      </svg>
                     ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M6 2a2 2 0 0 0-2 2v18l8-5.333L20 22V4a2 2 0 0 0-2-2H6z" />
-                    </svg>
+                      </svg>
                     )}
-                </button>
+                  </button>
                 </div>
 
-  
                 {/* Text */}
                 <div className="border-t border-slate-200 p-4 dark:border-slate-800">
                   <div className="line-clamp-1 text-[17px] font-semibold">
@@ -249,7 +301,7 @@ export default function SearchResults() {
                   )}
                   {l.price && (
                     <div className="mt-2 text-[15px] font-semibold text-blue-600">
-                      {l.price}
+                      ${l.price}
                     </div>
                   )}
                 </div>
@@ -260,5 +312,4 @@ export default function SearchResults() {
       )}
     </div>
   );
-  
 }

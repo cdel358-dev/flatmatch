@@ -65,6 +65,13 @@ export default function Home() {
     if (next.type && next.type !== 'Any') params.set('type', next.type);
     if (next.sort) params.set('sort', next.sort);
 
+    try {
+      const p = JSON.parse(localStorage.getItem('fm_prefs') || '{}');
+      if (!params.has('location') && p.location) params.set('location', p.location);
+      if (!params.has('min') && p.priceMin != null) params.set('min', String(p.priceMin));
+      if (!params.has('max') && p.priceMax != null) params.set('max', String(p.priceMax));
+    } catch {}
+
     navigate(`/search?${params.toString()}`);
   };
 

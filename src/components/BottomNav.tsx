@@ -62,19 +62,8 @@ export default function BottomNav() {
   const { pathname } = useLocation();
   const { isAuthenticated } = useAuth();
 
-  // const isAuthenticated = useMemo(() => {
-  //   try {
-  //     const raw = localStorage.getItem('fm_user');
-  //     if (!raw) return false;
-  //     const u = JSON.parse(raw);
-  //     return Boolean(u && (u.id || u.email));
-  //   } catch {
-  //     return false;
-  //   }
-  // }, []);
-
   // Hide when logged out or on auth routes
-  if (!isAuthenticated || pathname.startsWith('/auth')) {
+  if (!isAuthenticated || pathname.startsWith('/auth') || pathname.startsWith('/onboarding')) {
     return null;
   }
 

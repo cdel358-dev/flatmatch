@@ -1,10 +1,12 @@
 import { useMemo, useState, useCallback, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AuthModal from '../components/AuthModal';
+import { useAuth } from '../hooks/useAuth';
 
 export default function AuthPage() {
   const navigate = useNavigate();
   const { search } = useLocation();
+  const { login } = useAuth();
 
   const params = useMemo(() => new URLSearchParams(search), [search]);
   const initialMode = (params.get('mode') as 'login' | 'signup') || 'login';
@@ -25,30 +27,25 @@ export default function AuthPage() {
 
   const handleContinue = useCallback(
     (email: string) => {
-      const name = email.split('@')[0];
       const user = {
         id: crypto?.randomUUID?.() || Date.now().toString(),
         email,
-        name,
+        name: email.split('@')[0],
       };
-      localStorage.setItem('fm_user', JSON.stringify(user));
+      login(user);
 
-      // Fire a storage event so other components can react
-      window.dispatchEvent(
-        new StorageEvent('storage', {
-          key: 'fm_user',
-          newValue: JSON.stringify(user),
-        }),
-      );
-
-      navigate(next, { replace: true });
+      // If signing up, go to onboarding wizard; otherwise follow "next"
+      if (mode === 'signup') {
+        navigate('/preferences', { replace: true });
+      } else {
+        navigate(next, { replace: true });
+      }
     },
-    [navigate, next],
+    [login, navigate, next, mode],
   );
 
   return (
     <div className="relative -mx-4 min-h-[calc(100dvh-64px)] md:-mx-0 md:min-h-screen">
-      {/* Desktop/WebView background */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 hidden md:block"
@@ -58,12 +55,8 @@ export default function AuthPage() {
           backgroundPosition: 'center',
         }}
       />
-      <div
-        className="absolute inset-0 hidden bg-black/40 md:block"
-        aria-hidden
-      />
+      <div className="absolute inset-0 hidden bg-black/40 md:block" aria-hidden />
 
-      {/* Centered modal */}
       <div className="relative z-10 mx-auto grid min-h-[inherit] place-items-center px-4 py-10 md:max-w-7xl">
         <AuthModal
           mode={mode}
@@ -73,7 +66,6 @@ export default function AuthPage() {
         />
       </div>
 
-      {/* Mobile: spacer */}
       <div className="md:hidden">
         <div className="py-4" />
       </div>

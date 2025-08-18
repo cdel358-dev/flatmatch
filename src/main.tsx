@@ -23,6 +23,7 @@ import TenancyChecklist from './pages/info/TenancyChecklist';
 import Tips from './pages/info/Tips';
 import LocationPage from './pages/Location';
 import AuthPage from './pages/Auth';
+import PreferencesWizard from './pages/PreferencesWizard';
 
 import { ListingsProvider } from './state/ListingsContext';
 import { NotesProvider } from './state/NotesContext';
@@ -42,6 +43,7 @@ const router = createBrowserRouter(
       children: [
         { index: true, element: <Home /> },
         { path: 'auth', element: <AuthPage /> },
+        { path: 'preferences', element: <PreferencesWizard /> },
         { path: 'search', element: <SearchResults /> },
         { path: 'about', element: <About /> },
         { path: 'info', element: <Info /> },
