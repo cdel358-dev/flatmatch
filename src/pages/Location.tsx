@@ -16,8 +16,8 @@ export default function LocationPage() {
     const { getListingById } = useListings();
 
     const listing = useMemo(() => (id ? getListingById(id).listing : undefined), [id, getListingById]);
-    const title = listing?.propertyName || listing?.title || "Listing";
-    const suburb = listing?.location || "";
+    const title = listing?.title || listing?.subtitle || "Listing";
+    const suburb = listing?.loc|| "";
     const destQuery = encodeURIComponent(getMapAddress(listing!));
 
     // Two pins via Google Maps "directions" embed (no API key).
