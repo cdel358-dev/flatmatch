@@ -36,7 +36,7 @@ export default function AuthPage() {
 
       // If signing up, go to onboarding wizard; otherwise follow "next"
       if (mode === 'signup') {
-        navigate('/preferences', { replace: true });
+        navigate('/preferencesWizard', { replace: true });
       } else {
         navigate(next, { replace: true });
       }

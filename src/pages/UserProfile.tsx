@@ -85,6 +85,17 @@ export default function UserProfile() {
           LIST A ROOM
         </button>
 
+        {/* Preferences */}
+        <button
+          onClick={() => navigate('/preferences')}
+          className="mt-2 inline-flex h-11 items-center justify-center rounded-full bg-[#C4C4C4] px-6 text-sm font-semibold text-white hover:bg-[#b0b0b0] active:scale-[0.99]"
+          aria-label="Preferences"
+          title="Preferences"
+        >
+          PREFERENCES
+        </button>
+
+
         {/* About */}
         <section className="mt-6 w-full max-w-2xl">
           <SectionTitle>ABOUT</SectionTitle>

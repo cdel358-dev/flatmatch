@@ -24,6 +24,7 @@ import Tips from './pages/info/Tips';
 import LocationPage from './pages/Location';
 import AuthPage from './pages/Auth';
 import PreferencesWizard from './pages/PreferencesWizard';
+import Preferences from './pages/Preferences';
 
 import { ListingsProvider } from './state/ListingsContext';
 import { NotesProvider } from './state/NotesContext';
@@ -43,12 +44,13 @@ const router = createBrowserRouter(
       children: [
         { index: true, element: <Home /> },
         { path: 'auth', element: <AuthPage /> },
-        { path: 'preferences', element: <PreferencesWizard /> },
+        { path: 'preferencesWizard', element: <PreferencesWizard /> },
         { path: 'search', element: <SearchResults /> },
         { path: 'about', element: <About /> },
         { path: 'info', element: <Info /> },
         { path: 'messages', element: <Messages /> },
         { path: 'profile', element: <UserProfile /> },
+        { path: 'preferences', element: <Preferences /> },
         { path: 'listing/:id', element: <ListingDetails /> },
         { path: 'listing/:id/notes', element: <NotesPage /> },
         { path: '/listing/:id/location', element: <LocationPage /> },
