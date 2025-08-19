@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fi';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import logo from '/flatmatch-2.png';
 
 export default function Header() {
   const [open, setOpen] = useState(false);
@@ -62,7 +63,15 @@ export default function Header() {
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-2">
-          <span className="text-lg font-bold">FlatMatch</span>
+          {/* Brand */}
+          <Link to="/" className="flex items-center gap-2">
+            <img
+              src={logo}
+              alt="FlatMatch Logo"
+              className="h-16 w-auto object-contain"
+            />
+          {/* <span className="text-lg font-bold">FlatMatch</span> */}
+          </Link>
         </Link>
 
         {/* Right side */}

@@ -69,7 +69,7 @@ export default function Bookmarks() {
                     </div>
                   )}
                   {l.price && (
-                    <div className="mt-2 text-[15px] font-semibold text-blue-600">{l.price}</div>
+                    <div className="mt-2 text-[15px] font-semibold text-blue-600">${l.price}</div>
                   )}
                 </div>
               </div>

@@ -301,7 +301,7 @@ export default function ListingDetails() {
           href={emailHref}
           className="inline-flex h-11 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white hover:bg-black disabled:opacity-50"
         >
-          EMAIL HOST
+          MESSAGE HOST
         </a>
         <a
           href={listing.tradeMeUrl!}

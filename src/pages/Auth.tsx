@@ -48,7 +48,7 @@ export default function AuthPage() {
     <div className="relative -mx-4 min-h-[calc(100dvh-64px)] md:-mx-0 md:min-h-screen">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 hidden md:block"
+        className="pointer-events-none absolute inset-0"
         style={{
           backgroundImage: `url(${heroUrl})`,
           backgroundSize: 'cover',

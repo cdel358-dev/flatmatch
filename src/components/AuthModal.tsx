@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { FiX, FiMail, FiSmartphone, FiChevronRight } from 'react-icons/fi';
+import logo from '/flatmatch-2.png';
 
 interface Props {
   mode?: 'login' | 'signup';
@@ -35,6 +36,14 @@ export default function AuthModal({
       >
         <FiX className="h-5 w-5" />
       </button>
+
+      {/* Logo */}
+      <img
+        src={logo}
+        alt="FlatMatch Logo"
+        className="mb-6 w-80 object-contain mx-auto"
+      />
+
 
       <h1 className="mb-1 text-2xl font-semibold text-slate-900 dark:text-slate-50">
         {title}
