@@ -4,6 +4,7 @@ import { useListings } from '../state/ListingsContext';
 import { useReviews } from '../hooks/useReviews';
 import SafeImage from '../components/SafeImage';
 import NotesModal from '../components/NotesModal';
+import FlatmateAvatar from "../components/FlatmateAvatar";
 
 /* ---------- Star rating ---------- */
 function StarRating({ value }: { value: number }) {
@@ -336,10 +337,16 @@ export default function ListingDetails() {
                 <div className="relative mx-auto w-16">
                   <div className="grid h-16 w-16 place-items-center overflow-hidden rounded-full bg-slate-300 dark:bg-slate-700">
                     {/* avatar placeholder (SafeImage if you have one) */}
-                    <svg className="h-8 w-8 opacity-60" viewBox="0 0 24 24" fill="currentColor">
+                    {/* <svg className="h-8 w-8 opacity-60" viewBox="0 0 24 24" fill="currentColor">
                       <circle cx="12" cy="8" r="4" />
                       <path d="M4 20c0-3.314 3.582-6 8-6s8 2.686 8 6" />
-                    </svg>
+                    </svg> */}
+
+                    <FlatmateAvatar
+                      name={m.name}
+                      avatar={m.avatar}          // <- comes from the mock generator
+                      size={64}                  // matches w-16 h-16
+                    />
                   </div>
 
                   {m.verified && (
