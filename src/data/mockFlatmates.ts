@@ -20,12 +20,19 @@ const fm = (
   avatar?: string
 ): Flatmate => ({ id, name, about, verified, avatar });
 
+const BASE = (import.meta as any).env?.BASE_URL ?? '/';
+
 // --- Names/bios pool (extend anytime) ---
-const NAMES = [
-  "Alex", "Sam", "Riley", "Jordan", "Ari", "Taylor", "Morgan", "Casey", "Jamie",
-  "Quinn", "Drew", "Parker", "Blake", "Rowan", "Charlie", "Avery", "Harper",
-  "Logan", "Emerson", "Kai", "Noa", "Elliot", "Reese", "Jude", "Micah", "Hayden",
+const NAMES_MALE = [
+  "Alex", "Sam", "Jordan", "Ari", "Taylor", "Morgan", "Casey",
+  "Drew", "Parker", "Blake", "Rowan", "Logan", "Kai", "Elliot",
+  "Jude", "Micah", "Hayden",
 ];
+const NAMES_FEMALE = [
+  "Riley", "Jamie", "Quinn", "Charlie", "Avery", "Harper",
+  "Emerson", "Noa", "Reese", "Emerson", "Hayden", "Rowan",
+];
+
 const BIOS = [
   "Software engineer. Early riser. Loves cycling.",
   "Nurse working nights. Bakes on weekends.",
@@ -175,7 +182,8 @@ function makeFlatmatesForListing(listing: Listing, count: number): Flatmate[] {
 
     // Cycle avatars in gendered folders
     const avatarIndex = (seedFromString(listing.id) + i) % 10; // assume 10 per gender
-    const avatar = `/images/flatmates/${gender}/${avatarIndex + 1}.jpg`;
+    // const avatar = `/images/flatmates/${gender}/${avatarIndex + 1}.png`;
+    const avatar = `${BASE}images/flatmates/${gender}/${avatarIndex + 1}.png`;
 
     out.push({
       id: `${listing.id}-fm-${i + 1}`,
